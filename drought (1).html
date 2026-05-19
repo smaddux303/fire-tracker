@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drought Conditions — Westminster, CO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
+    --paper: #F9F6F1; --white: #FFFFFF; --border: rgba(44,44,42,0.12); --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ash); min-height: 100vh; }
+
+  .header { background: #1a1209; color: var(--white); position: relative; overflow: hidden; }
+  .header-inner { max-width: 900px; margin: 0 auto; padding: 2rem 2rem 1.5rem; position: relative; z-index: 1; }
+  .header-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #C8A55A; margin-bottom: 0.4rem; font-weight: 500; }
+  .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 7vw, 4.5rem); line-height: 0.95; color: var(--white); }
+  .header h1 span { color: #C8A55A; }
+  .header-sub { margin-top: 0.6rem; font-size: 14px; color: rgba(255,255,255,0.5); }
+  .header-glow { position: absolute; right: -80px; top: -80px; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(200,165,90,0.12) 0%, transparent 70%); pointer-events: none; }
+
+  .status-bar { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
+  .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 0.55rem 1.1rem; border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+  .status-pill.none    { background: #EAF3DE; color: #27500A; }
+  .status-pill.d0      { background: #FAEEDA; color: #633806; }
+  .status-pill.d1      { background: #FAEEDA; color: #633806; }
+  .status-pill.d2      { background: #FAECE7; color: #4A1B0C; }
+  .status-pill.d3      { background: #FCEBEB; color: #791F1F; }
+  .status-pill.d4      { background: #FCEBEB; color: #791F1F; }
+  .status-pill.loading { background: #FAEEDA; color: #633806; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .none    .status-dot { background: #3B6D11; }
+  .d0      .status-dot { background: #C8A55A; animation: pulse 3s infinite; }
+  .d1      .status-dot { background: #BA7517; animation: pulse 2s infinite; }
+  .d2      .status-dot { background: #D85A30; animation: pulse 1.5s infinite; }
+  .d3      .status-dot { background: #A32D2D; animation: pulse 1.2s infinite; }
+  .d4      .status-dot { background: #6B0000; animation: pulse 1s infinite; }
+  .loading .status-dot { background: #C8A55A; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.4);} }
+
+  .main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+  /* DROUGHT SCALE */
+  .drought-scale {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+  .scale-item { padding: 10px 6px; text-align: center; }
+  .scale-item.active { outline: 3px solid var(--ash); outline-offset: -3px; }
+  .scale-code { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--white); line-height: 1; }
+  .scale-name { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(255,255,255,0.8); margin-top: 2px; }
+
+  /* COUNTY CARDS */
+  .county-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5rem; }
+  @media(max-width:500px){ .county-grid { grid-template-columns: 1fr; } }
+  .county-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .county-accent { height: 6px; }
+  .county-inner { padding: 1.2rem 1.3rem; }
+  .county-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 6px; }
+  .county-level { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; line-height: 1; margin-bottom: 4px; }
+  .county-label { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .county-fire-risk { font-size: 12px; color: var(--smoke); line-height: 1.5; margin-bottom: 10px; }
+  .county-trend { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 5px; }
+
+  /* TREND HISTORY */
+  .trend-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.5rem; }
+  .trend-chart { display: flex; align-items: flex-end; gap: 8px; height: 80px; margin-top: 1rem; }
+  .trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .trend-bar { width: 100%; border-radius: 3px 3px 0 0; transition: height 0.4s; min-height: 4px; }
+  .trend-label { font-size: 9px; color: var(--mist); text-align: center; white-space: nowrap; }
+  .trend-code { font-size: 10px; font-weight: 700; color: var(--smoke); }
+
+  /* MAP */
+  .map-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
+  .map-header { padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .map-header-title { font-size: 13px; font-weight: 600; }
+  .map-header-sub { font-size: 11px; color: var(--smoke); }
+  .map-img { width: 100%; display: block; }
+  .map-footer { padding: 0.6rem 1.2rem; font-size: 11px; color: var(--smoke); border-top: 1px solid var(--border); }
+
+  /* FIRE RISK TABLE */
+  .risk-table { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
+  .risk-row { display: grid; grid-template-columns: 40px 80px 1fr 1fr; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: center; }
+  .risk-row:last-child { border-bottom: none; }
+  .risk-row.header { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--smoke); font-weight: 600; background: #fafaf8; }
+  .risk-row.current-row { background: #FAEEDA; }
+  .risk-dot { width: 12px; height: 12px; border-radius: 3px; }
+  .risk-code { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+  .risk-desc { color: var(--smoke); font-size: 12px; }
+  .current-tag { font-size: 10px; font-weight: 700; background: #1a1209; color: #C8A55A; padding: 2px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 0.8rem; }
+
+  .loading-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--smoke); font-size: 14px; }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: #C8A55A; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.8rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer { max-width: 900px; margin: 0 auto; padding: 0 2rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .footer-left { font-size: 12px; color: var(--smoke); }
+  .footer-left a { color: #C8A55A; text-decoration: none; }
+  .footer-left a:hover { text-decoration: underline; }
+  .refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; background: #1a1209; color: var(--white); border: none; border-radius: var(--radius); padding: 0.5rem 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .refresh-btn:hover { background: #C8A55A; color: #1a1209; }
+  .refresh-btn svg { width: 14px; height: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-glow"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">🌵 Fire Risk Indicator</div>
+    <h1>Drought <span>Conditions</span><br>Tracker</h1>
+    <p class="header-sub">Adams &amp; Jefferson Counties, Colorado — US Drought Monitor</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill loading" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Loading drought data…</span>
+  </div>
+</div>
+
+<main class="main">
+  <div id="content-area">
+    <div class="loading-state"><div class="spinner"></div>Loading drought conditions…</div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Data from <a href="https://droughtmonitor.unl.edu" target="_blank">US Drought Monitor</a> &bull;
+    Updates every <strong>Thursday</strong> &bull;
+    <span id="last-updated">—</span>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<script>
+const DROUGHT_LEVELS = [
+  { code:'None', label:'No Drought',          color:'#3B6D11', bg:'#EAF3DE', textColor:'#27500A', pillClass:'none', height:5,
+    fireRisk:'Normal fire weather conditions. Standard operational readiness.' },
+  { code:'D0',   label:'Abnormally Dry',       color:'#C8A55A', bg:'#FAEEDA', textColor:'#633806', pillClass:'d0',   height:20,
+    fireRisk:'Elevated dryness. Monitor conditions. Vegetation beginning to stress.' },
+  { code:'D1',   label:'Moderate Drought',     color:'#BA7517', bg:'#FAEEDA', textColor:'#633806', pillClass:'d1',   height:40,
+    fireRisk:'Increased fire risk. Fine fuels drying. Heightened patrol awareness recommended.' },
+  { code:'D2',   label:'Severe Drought',       color:'#D85A30', bg:'#FAECE7', textColor:'#4A1B0C', pillClass:'d2',   height:60,
+    fireRisk:'High fire danger. Fuels critically dry. Pre-position resources if Red Flag Warning issued.' },
+  { code:'D3',   label:'Extreme Drought',      color:'#A32D2D', bg:'#FCEBEB', textColor:'#791F1F', pillClass:'d3',   height:80,
+    fireRisk:'Extreme fire conditions. Rapid fire spread likely. Elevated staffing levels warranted.' },
+  { code:'D4',   label:'Exceptional Drought',  color:'#6B0000', bg:'#FCEBEB', textColor:'#4A0000', pillClass:'d4',   height:100,
+    fireRisk:'Catastrophic fire risk. Explosive fire behavior expected. Maximum readiness required.' },
+];
+
+// Historical trend data for Adams & Jefferson Counties
+// Source: US Drought Monitor — manually updated weekly (or via API below)
+// Using USDM API for county-level data
+const ADAMS_FIPS    = '08001';
+const JEFFERSON_FIPS= '08059';
+
+// Weekly trend — fetched from USDM statistics API
+const USDM_API = 'https://usdmdataservices.unl.edu/api/CountyStatistics/GetDroughtSeverityStatisticsByAreaPercent';
+
+function getLevelByCode(code) {
+  return DROUGHT_LEVELS.find(l => l.code === code) || DROUGHT_LEVELS[0];
+}
+
+// Determine dominant drought level from USDM percentage data
+function getDominantLevel(stats) {
+  if (!stats || stats.length === 0) return 'None';
+  const latest = stats[stats.length - 1];
+  // D4 > D3 > D2 > D1 > D0 > None
+  // Each field is cumulative % coverage
+  if (parseFloat(latest.D4) > 5)  return 'D4';
+  if (parseFloat(latest.D3) > 10) return 'D3';
+  if (parseFloat(latest.D2) > 20) return 'D2';
+  if (parseFloat(latest.D1) > 30) return 'D1';
+  if (parseFloat(latest.D0) > 30) return 'D0';
+  return 'None';
+}
+
+function getTrend(stats) {
+  if (!stats || stats.length < 2) return { label: 'Stable', icon: '→', color: '#BA7517' };
+  const codes = ['None','D0','D1','D2','D3','D4'];
+  const prev = codes.indexOf(getDominantLevelFromEntry(stats[stats.length - 2]));
+  const curr = codes.indexOf(getDominantLevelFromEntry(stats[stats.length - 1]));
+  if (curr > prev) return { label: 'Worsening', icon: '↑', color: '#E24B4A' };
+  if (curr < prev) return { label: 'Improving', icon: '↓', color: '#3B6D11' };
+  return { label: 'Stable', icon: '→', color: '#BA7517' };
+}
+
+function getDominantLevelFromEntry(entry) {
+  if (!entry) return 'None';
+  if (parseFloat(entry.D4) > 5)  return 'D4';
+  if (parseFloat(entry.D3) > 10) return 'D3';
+  if (parseFloat(entry.D2) > 20) return 'D2';
+  if (parseFloat(entry.D1) > 30) return 'D1';
+  if (parseFloat(entry.D0) > 30) return 'D0';
+  return 'None';
+}
+
+function formatWeek(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function setStatus(cls, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + cls;
+  document.getElementById('status-text').textContent = text;
+}
+
+async function fetchCountyData(fips) {
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 56);
+  const fmt = d => d.toISOString().split("T")[0];
+  const url = `${USDM_API}?aoi=${fips}&startdate=${fmt(startDate)}&enddate=${fmt(endDate)}&statisticsType=1`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const lines = text.trim().split("\n");
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(",").map(h => h.trim().replace(/"/g,""));
+  return lines.slice(1).map(line => {
+    const vals = line.split(",").map(v => v.trim().replace(/"/g,""));
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || "0");
+    return obj;
+  });
+}
+
+function renderTrendChart(stats, color) {
+  if (!stats || stats.length === 0) return '<div style="font-size:12px;color:var(--smoke)">No trend data available</div>';
+  const recent = stats.slice(-8);
+  return `<div class="trend-chart">
+    ${recent.map(s => {
+      const level = getDominantLevelFromEntry(s);
+      const dl = getLevelByCode(level);
+      const heightPct = dl.height;
+      return `<div class="trend-bar-wrap">
+        <div class="trend-code">${level === 'None' ? '—' : level}</div>
+        <div class="trend-bar" style="height:${heightPct}%;background:${dl.color}"></div>
+        <div class="trend-label">${formatWeek(s.MapDate || s.ReleaseDate || s.releaseDate || s.date)}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+async function loadData() {
+  document.getElementById('content-area').innerHTML = `<div class="loading-state"><div class="spinner"></div>Loading drought conditions from US Drought Monitor…</div>`;
+  setStatus('loading', 'Loading drought data…');
+
+  try {
+    const [adamsStats, jeffStats] = await Promise.all([
+      fetchCountyData(ADAMS_FIPS),
+      fetchCountyData(JEFFERSON_FIPS)
+    ]);
+
+    const adamsLevel  = getDominantLevel(adamsStats);
+    const jeffLevel   = getDominantLevel(jeffStats);
+    const adamsDL     = getLevelByCode(adamsLevel);
+    const jeffDL      = getLevelByCode(jeffLevel);
+    const adamsTrend  = getTrend(adamsStats);
+    const jeffTrend   = getTrend(jeffStats);
+
+    // Worst of the two for overall status
+    const codes = ['None','D0','D1','D2','D3','D4'];
+    const worstCode = codes.indexOf(adamsLevel) >= codes.indexOf(jeffLevel) ? adamsLevel : jeffLevel;
+    const worstDL   = getLevelByCode(worstCode);
+
+    setStatus(worstDL.pillClass, `${worstDL.label} — ${worstCode === 'None' ? 'Normal fire conditions' : worstDL.fireRisk.split('.')[0]}`);
+    document.getElementById('last-updated').textContent = 'Checked ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+
+    // Get current map date from stats
+    const latestDate = adamsStats.length > 0
+      ? new Date(adamsStats[adamsStats.length-1].MapDate || adamsStats[adamsStats.length-1].releaseDate || new Date()).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})
+      : 'Latest available';
+
+    document.getElementById('content-area').innerHTML = `
+
+      <!-- DROUGHT SCALE BAR -->
+      <div class="drought-scale" style="margin-bottom:1.5rem">
+        ${DROUGHT_LEVELS.map(l => `
+          <div class="scale-item ${worstCode === l.code ? 'active' : ''}" style="background:${l.color}">
+            <div class="scale-code">${l.code}</div>
+            <div class="scale-name">${l.code === 'None' ? 'None' : l.label.split(' ')[0]}</div>
+          </div>`).join('')}
+      </div>
+
+      <!-- COUNTY CARDS -->
+      <div class="county-grid">
+        <div class="county-card">
+          <div class="county-accent" style="background:${jeffDL.color}"></div>
+          <div class="county-inner">
+            <div class="county-name">Jefferson County</div>
+            <div class="county-level" style="color:${jeffDL.color}">${jeffLevel}</div>
+            <div class="county-label">${jeffDL.label}</div>
+            <div class="county-fire-risk">${jeffDL.fireRisk}</div>
+            <div class="county-trend" style="background:${jeffDL.bg};color:${jeffTrend.color}">
+              ${jeffTrend.icon} ${jeffTrend.label}
+            </div>
+          </div>
+        </div>
+        <div class="county-card">
+          <div class="county-accent" style="background:${adamsDL.color}"></div>
+          <div class="county-inner">
+            <div class="county-name">Adams County</div>
+            <div class="county-level" style="color:${adamsDL.color}">${adamsLevel}</div>
+            <div class="county-label">${adamsDL.label}</div>
+            <div class="county-fire-risk">${adamsDL.fireRisk}</div>
+            <div class="county-trend" style="background:${adamsDL.bg};color:${adamsTrend.color}">
+              ${adamsTrend.icon} ${adamsTrend.label}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TREND CHARTS -->
+      <div class="trend-section" style="margin-bottom:1.5rem">
+        <div class="section-label" style="margin-bottom:0.3rem">Jefferson County — 8 Week Trend</div>
+        <div style="font-size:12px;color:var(--smoke);margin-bottom:0.5rem">Dominant drought category per weekly release</div>
+        ${renderTrendChart(jeffStats, jeffDL.color)}
+      </div>
+      <div class="trend-section" style="margin-bottom:1.5rem">
+        <div class="section-label" style="margin-bottom:0.3rem">Adams County — 8 Week Trend</div>
+        <div style="font-size:12px;color:var(--smoke);margin-bottom:0.5rem">Dominant drought category per weekly release</div>
+        ${renderTrendChart(adamsStats, adamsDL.color)}
+      </div>
+
+      <!-- COLORADO MAP -->
+      <div class="map-section">
+        <div class="map-header">
+          <div>
+            <div class="map-header-title">Colorado Drought Map</div>
+            <div class="map-header-sub">US Drought Monitor &bull; ${latestDate}</div>
+          </div>
+          <a href="https://droughtmonitor.unl.edu/CurrentMap/StateDroughtMonitor.aspx?CO" target="_blank"
+             style="font-size:12px;color:#C8A55A;text-decoration:none;font-weight:500">View full map ↗</a>
+        </div>
+        <img class="map-img" src="https://droughtmonitor.unl.edu/data/png/current/current_co_text.png"
+             alt="Colorado Drought Monitor Map" onerror="this.style.display='none';document.getElementById('map-fallback').style.display='block'">
+        <div id="map-fallback" style="display:none;padding:1rem;text-align:center;font-size:13px;color:var(--smoke)">
+          Map unavailable — <a href="https://droughtmonitor.unl.edu/CurrentMap/StateDroughtMonitor.aspx?CO" target="_blank" style="color:#C8A55A">view on USDM website</a>
+        </div>
+        <div class="map-footer">Denver metro area is in the north-central portion of the map. Adams County is northeast of Denver; Jefferson County is southwest.</div>
+      </div>
+
+      <!-- DROUGHT LEVEL REFERENCE -->
+      <div class="section-label">Drought Level Reference — Fire Risk</div>
+      <div class="risk-table">
+        <div class="risk-row header">
+          <div></div><div>Level</div><div>Category</div><div>Fire Risk Implication</div>
+        </div>
+        ${DROUGHT_LEVELS.map(l => {
+          const isCurrent = l.code === worstCode;
+          return `<div class="risk-row ${isCurrent ? 'current-row' : ''}">
+            <div class="risk-dot" style="background:${l.color}"></div>
+            <div class="risk-code" style="color:${l.color}">${l.code}${isCurrent ? '<span class="current-tag">NOW</span>' : ''}</div>
+            <div>${l.label}</div>
+            <div class="risk-desc">${l.fireRisk}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+  } catch(err) {
+    setStatus('loading', 'Unable to load drought data');
+    document.getElementById('content-area').innerHTML = `
+      <div class="loading-state">
+        <strong>Could not load US Drought Monitor data.</strong><br>
+        Check your connection or visit the <a href="https://droughtmonitor.unl.edu" target="_blank" style="color:#C8A55A">USDM website</a> directly.<br><br>
+        <small style="color:#aaa">${err.message}</small>
+      </div>`;
+  }
+}
+
+loadData();
+// Drought monitor updates weekly — refresh every 6 hours is plenty
+setInterval(loadData, 6 * 60 * 60 * 1000);
+</script>
+</body>
+</html>
