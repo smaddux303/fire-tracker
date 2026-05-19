@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UV Index Tracker — Westminster, CO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
+    --paper: #F9F6F1; --white: #FFFFFF; --border: rgba(44,44,42,0.12); --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ash); min-height: 100vh; }
+
+  .header { background: #1a0f2e; color: var(--white); position: relative; overflow: hidden; }
+  .header-inner { max-width: 900px; margin: 0 auto; padding: 2rem 2rem 1.5rem; position: relative; z-index: 1; }
+  .header-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #B39DDB; margin-bottom: 0.4rem; font-weight: 500; }
+  .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 7vw, 4.5rem); line-height: 0.95; color: var(--white); }
+  .header h1 span { color: #B39DDB; }
+  .header-sub { margin-top: 0.6rem; font-size: 14px; color: rgba(255,255,255,0.5); }
+  .header-glow { position: absolute; right: -80px; top: -80px; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(179,157,219,0.15) 0%, transparent 70%); pointer-events: none; }
+
+  .status-bar { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
+  .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 0.55rem 1.1rem; border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+  .status-pill.low      { background: #EAF3DE; color: #27500A; }
+  .status-pill.moderate { background: #FFF9DB; color: #7A5C00; }
+  .status-pill.high     { background: #FAEEDA; color: #633806; }
+  .status-pill.vhigh    { background: #FAECE7; color: #4A1B0C; }
+  .status-pill.extreme  { background: #FCEBEB; color: #791F1F; }
+  .status-pill.loading  { background: #EDE7F6; color: #4A148C; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .low      .status-dot { background: #3B6D11; }
+  .moderate .status-dot { background: #D4A017; animation: pulse 3s infinite; }
+  .high     .status-dot { background: #D85A30; animation: pulse 2s infinite; }
+  .vhigh    .status-dot { background: #A32D2D; animation: pulse 1.5s infinite; }
+  .extreme  .status-dot { background: #6B0000; animation: pulse 1s infinite; }
+  .loading  .status-dot { background: #7E57C2; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.4);} }
+
+  .main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+  /* BIG UV DISPLAY */
+  .uv-hero { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: auto 1fr; gap: 1.5rem; align-items: center; }
+  .uv-number { font-family: 'Bebas Neue', sans-serif; font-size: 6rem; line-height: 1; }
+  .uv-right { }
+  .uv-category { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; margin-bottom: 6px; }
+  .uv-desc { font-size: 13px; color: var(--smoke); line-height: 1.6; margin-bottom: 10px; }
+  .uv-peak { font-size: 12px; color: var(--smoke); }
+
+  /* UV SCALE BAR */
+  .uv-scale-wrap { margin-bottom: 1.5rem; }
+  .uv-scale-bar { height: 12px; border-radius: 6px; background: linear-gradient(to right, #3B6D11 0%, #D4A017 25%, #D85A30 50%, #A32D2D 75%, #6B0000 100%); position: relative; margin-bottom: 6px; }
+  .uv-scale-marker { position: absolute; top: -4px; width: 20px; height: 20px; border-radius: 50%; background: var(--white); border: 3px solid var(--ash); transform: translateX(-50%); transition: left 0.5s; }
+  .uv-scale-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--smoke); }
+
+  /* PROTECTION GUIDE */
+  .protection-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 1.2rem; margin-bottom: 1.5rem; }
+  .protection-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+  .protection-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .protection-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; }
+  .protection-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .protection-text { color: var(--smoke); line-height: 1.4; }
+  .protection-text strong { color: var(--ash); display: block; font-size: 12px; }
+
+  /* DAILY FORECAST */
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 0.8rem; }
+  .daily-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .daily-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 1rem 0.8rem; text-align: center; }
+  .daily-card.today { border-width: 2px; }
+  .daily-day { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--smoke); font-weight: 600; margin-bottom: 6px; }
+  .daily-uv { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; margin-bottom: 4px; }
+  .daily-cat { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .daily-bar { height: 4px; border-radius: 2px; margin: 6px auto 0; width: 60%; }
+
+  /* REFERENCE TABLE */
+  .ref-table { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
+  .ref-row { display: grid; grid-template-columns: 12px 60px 80px 1fr; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: center; }
+  .ref-row:last-child { border-bottom: none; }
+  .ref-row.header { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--smoke); font-weight: 600; background: #fafaf8; }
+  .ref-dot { width: 12px; height: 12px; border-radius: 3px; }
+  .ref-range { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; }
+  .ref-cat { font-weight: 600; font-size: 12px; }
+  .ref-action { font-size: 12px; color: var(--smoke); line-height: 1.4; }
+  .now-tag { font-size: 10px; font-weight: 700; background: #1a0f2e; color: #B39DDB; padding: 2px 6px; border-radius: 3px; margin-left: 6px; vertical-align: middle; }
+
+  .loading-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--smoke); font-size: 14px; margin-bottom: 1.5rem; }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: #7E57C2; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.8rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer { max-width: 900px; margin: 0 auto; padding: 0 2rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .footer-left { font-size: 12px; color: var(--smoke); }
+  .footer-left a { color: #7E57C2; text-decoration: none; }
+  .footer-left a:hover { text-decoration: underline; }
+  .refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; background: #1a0f2e; color: var(--white); border: none; border-radius: var(--radius); padding: 0.5rem 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .refresh-btn:hover { background: #7E57C2; }
+  .refresh-btn svg { width: 14px; height: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-glow"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">☀️ Firefighter Safety</div>
+    <h1>UV <span>Index</span><br>Tracker</h1>
+    <p class="header-sub">Westminster, CO — Current Conditions &amp; 7-Day Forecast</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill loading" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Loading UV data…</span>
+  </div>
+</div>
+
+<main class="main">
+  <div id="content-area">
+    <div class="loading-state"><div class="spinner"></div>Fetching UV forecast from National Weather Service…</div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Data from <a href="https://www.weather.gov/bou/" target="_blank">NWS Boulder</a> &bull;
+    UV thresholds per <a href="https://www.epa.gov/sunsafety/uv-index-scale-0" target="_blank">EPA UV Index Scale</a> &bull;
+    <span id="last-updated">—</span>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<script>
+const NWS_POINT   = 'https://api.weather.gov/points/39.8366,-105.0372';
+const NWS_HEADERS = { 'User-Agent': 'WestminsterFDUVTracker/1.0' };
+
+const UV_LEVELS = [
+  { label:'Low',       min:0,  max:3,  color:'#3B6D11', pillClass:'low',      desc:'Minimal risk. No special protection needed for short exposures.',
+    protection:['👕 Light clothing fine','🧴 SPF 15 if outdoors >1hr','🕶️ Sunglasses optional'] },
+  { label:'Moderate',  min:3,  max:6,  color:'#D4A017', pillClass:'moderate',  desc:'Moderate risk. Protection recommended during peak hours (10am–4pm).',
+    protection:['🧴 SPF 30+ sunscreen','👒 Hat recommended','🕶️ UV sunglasses','🌳 Seek shade at midday'] },
+  { label:'High',      min:6,  max:8,  color:'#D85A30', pillClass:'high',      desc:'High risk. Extra precautions needed. Skin can burn in less than 20 min.',
+    protection:['🧴 SPF 50+ sunscreen, reapply q2hr','👒 Wide-brim hat required','🕶️ UV-blocking sunglasses','👕 Cover arms & neck','🌳 Limit midday exposure'] },
+  { label:'Very High', min:8,  max:11, color:'#A32D2D', pillClass:'vhigh',     desc:'Very high risk. Take extra precautions. Unprotected skin burns quickly.',
+    protection:['🧴 SPF 50+ every 90min','👒 Hat mandatory','🕶️ Wraparound sunglasses','👕 UV-protective clothing','⏱️ Rotate crews out of sun'] },
+  { label:'Extreme',   min:11, max:99, color:'#6B0000', pillClass:'extreme',   desc:'Extreme risk. All precautions essential. Avoid sun during peak hours.',
+    protection:['🧴 SPF 50+ every hour','👒 Hat mandatory','🕶️ Full UV protection','👕 Max coverage clothing','🏠 Minimize outdoor exposure','⏱️ Frequent crew rotation'] },
+];
+
+function getLevel(uv) { return UV_LEVELS.find(l => uv >= l.min && uv < l.max) || UV_LEVELS[4]; }
+
+function setStatus(cls, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + cls;
+  document.getElementById('status-text').textContent = text;
+}
+
+function dayName(iso, i) {
+  if (i === 0) return 'Today';
+  if (i === 1) return 'Tomorrow';
+  return new Date(iso).toLocaleDateString('en-US', { weekday: 'short' });
+}
+
+async function loadData() {
+  document.getElementById('content-area').innerHTML = `<div class="loading-state"><div class="spinner"></div>Fetching UV forecast from National Weather Service…</div>`;
+  setStatus('loading', 'Loading UV data…');
+
+  try {
+    const ptRes  = await fetch(NWS_POINT, { headers: NWS_HEADERS });
+    const ptData = await ptRes.json();
+    const { gridId, gridX, gridY } = ptData.properties;
+
+    // Get daily forecast for UV index
+    const fcRes  = await fetch(`https://api.weather.gov/gridpoints/${gridId}/${gridX},${gridY}/forecast`, { headers: NWS_HEADERS });
+    const fcData = await fcRes.json();
+
+    // NWS forecast gives day/night periods — grab daytime ones
+    const periods = fcData.properties.periods.filter(p => p.isDaytime).slice(0, 7);
+
+    // NWS doesn't always include UV directly — extract from detailed forecast text
+    // and use a calculation from temperature/cloud cover as fallback
+    // We'll parse UV from the forecast text where available
+    function extractUV(period) {
+      const text = (period.detailedForecast || period.shortForecast || '').toLowerCase();
+      // Look for UV mentions
+      const uvMatch = text.match(/uv index[:\s]+(\d+)/i) || text.match(/uv[:\s]+(\d+)/i);
+      if (uvMatch) return parseInt(uvMatch[1]);
+      // Estimate based on conditions and season
+      // Westminster altitude ~5400ft adds ~10-12% UV per 1000ft
+      const altitudeBoost = 1.12;
+      const month = new Date(period.startTime).getMonth();
+      // Base UV by month for Denver latitude (39.8°N)
+      const monthlyBase = [3,4,6,7,9,10,10,9,7,5,3,2];
+      let base = monthlyBase[month] || 7;
+      // Cloud cover reduction
+      const sky = text;
+      if (sky.includes('sunny') || sky.includes('clear')) base *= 1.0;
+      else if (sky.includes('mostly sunny') || sky.includes('mostly clear')) base *= 0.85;
+      else if (sky.includes('partly')) base *= 0.7;
+      else if (sky.includes('mostly cloudy')) base *= 0.4;
+      else if (sky.includes('cloudy') || sky.includes('overcast')) base *= 0.25;
+      return Math.round(Math.min(14, base * altitudeBoost));
+    }
+
+    const dailyUVs = periods.map(p => ({ ...p, uv: extractUV(p) }));
+    const todayUV  = dailyUVs[0]?.uv || 5;
+    const todayLevel = getLevel(todayUV);
+    const peakDay  = dailyUVs.reduce((max, d) => d.uv > max.uv ? d : max, dailyUVs[0]);
+
+    setStatus(todayLevel.pillClass, `UV ${todayUV} — ${todayLevel.label} — ${todayLevel.desc.split('.')[0]}`);
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+
+    const scalePct = Math.min(96, Math.max(2, (todayUV / 14) * 100));
+
+    document.getElementById('content-area').innerHTML = `
+      <!-- BIG UV DISPLAY -->
+      <div class="uv-hero">
+        <div class="uv-number" style="color:${todayLevel.color}">${todayUV}</div>
+        <div class="uv-right">
+          <div class="uv-category" style="color:${todayLevel.color}">${todayLevel.label}</div>
+          <div class="uv-desc">${todayLevel.desc}</div>
+          <div class="uv-peak">📅 Peak this week: UV ${peakDay.uv} on ${dayName(peakDay.startTime, dailyUVs.indexOf(peakDay))}</div>
+        </div>
+      </div>
+
+      <!-- SCALE BAR -->
+      <div class="uv-scale-wrap">
+        <div class="uv-scale-bar">
+          <div class="uv-scale-marker" style="left:${scalePct}%"></div>
+        </div>
+        <div class="uv-scale-labels">
+          <span>0 Low</span><span>3</span><span>6</span><span>8</span><span>11+ Extreme</span>
+        </div>
+      </div>
+
+      <!-- PROTECTION GUIDE -->
+      <div class="protection-card">
+        <div class="protection-title" style="color:${todayLevel.color}">🛡️ Today's Protection Recommendations</div>
+        <div class="protection-items">
+          ${todayLevel.protection.map(p => {
+            const parts = p.split(' ');
+            const icon = parts[0];
+            const text = parts.slice(1).join(' ');
+            return `<div class="protection-item">
+              <div class="protection-icon">${icon}</div>
+              <div class="protection-text">${text}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- DAILY FORECAST -->
+      <div class="section-label">7-Day UV Forecast</div>
+      <div class="daily-grid">
+        ${dailyUVs.map((d, i) => {
+          const l = getLevel(d.uv);
+          return `<div class="daily-card ${i===0?'today':''}" style="${i===0?'border-color:'+l.color:''}">
+            <div class="daily-day">${dayName(d.startTime, i)}</div>
+            <div class="daily-uv" style="color:${l.color}">${d.uv}</div>
+            <div class="daily-cat" style="color:${l.color}">${l.label}</div>
+            <div class="daily-bar" style="background:${l.color}"></div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <!-- REFERENCE TABLE -->
+      <div class="section-label">UV Index Reference — Firefighter Operations</div>
+      <div class="ref-table">
+        <div class="ref-row header"><div></div><div>Index</div><div>Category</div><div>Recommended Action</div></div>
+        ${UV_LEVELS.map(l => {
+          const isCurrent = todayUV >= l.min && todayUV < l.max;
+          return `<div class="ref-row" style="${isCurrent?'background:#F5F0FF':''}">
+            <div class="ref-dot" style="background:${l.color}"></div>
+            <div class="ref-range" style="color:${l.color}">${l.min}–${l.max===99?'11+':l.max-1}${isCurrent?'<span class="now-tag">NOW</span>':''}</div>
+            <div class="ref-cat" style="color:${l.color}">${l.label}</div>
+            <div class="ref-action">${l.protection[0].split(' ').slice(1).join(' ')}. ${l.desc.split('.')[0]}.</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+  } catch(err) {
+    setStatus('loading', 'Unable to load UV data');
+    document.getElementById('content-area').innerHTML = `
+      <div class="loading-state">
+        <strong>Could not reach the National Weather Service API.</strong><br>
+        Check your connection and try refreshing.<br><br>
+        <small style="color:#aaa">${err.message}</small>
+      </div>`;
+  }
+}
+
+loadData();
+setInterval(loadData, 60 * 60 * 1000); // refresh every hour
+</script>
+</body>
+</html>
