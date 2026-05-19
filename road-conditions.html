@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Road Conditions — Westminster, CO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
+    --paper: #F9F6F1; --white: #FFFFFF; --border: rgba(44,44,42,0.12); --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ash); min-height: 100vh; }
+
+  .header { background: #1a1f2e; color: var(--white); position: relative; overflow: hidden; }
+  .header-inner { max-width: 960px; margin: 0 auto; padding: 2rem 2rem 1.5rem; position: relative; z-index: 1; }
+  .header-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #F5C842; margin-bottom: 0.4rem; font-weight: 500; }
+  .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 7vw, 4.5rem); line-height: 0.95; color: var(--white); }
+  .header h1 span { color: #F5C842; }
+  .header-sub { margin-top: 0.6rem; font-size: 14px; color: rgba(255,255,255,0.5); }
+  .header-glow { position: absolute; right: -80px; top: -80px; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(245,200,66,0.1) 0%, transparent 70%); pointer-events: none; }
+
+  .status-bar { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
+  .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 0.55rem 1.1rem; border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+  .status-pill.clear   { background: #EAF3DE; color: #27500A; }
+  .status-pill.warning { background: #FAEEDA; color: #633806; }
+  .status-pill.danger  { background: #FCEBEB; color: #791F1F; }
+  .status-pill.loading { background: #FFF9DB; color: #7A5C00; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .clear   .status-dot { background: #3B6D11; }
+  .warning .status-dot { background: #BA7517; animation: pulse 2s infinite; }
+  .danger  .status-dot { background: #E24B4A; animation: pulse 1.5s infinite; }
+  .loading .status-dot { background: #D4A017; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.4);} }
+
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+  .metric { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 0.9rem 1rem; }
+  .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); font-weight: 500; margin-bottom: 4px; }
+  .metric-value { font-size: 1.6rem; font-family: 'Bebas Neue', sans-serif; line-height: 1; color: var(--ash); }
+  .metric-unit { font-size: 11px; color: var(--smoke); margin-top: 2px; }
+  .metric.alert-count .metric-value { color: #E24B4A; }
+  .metric.construction-count .metric-value { color: #D4A017; }
+
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 0.8rem; }
+
+  .filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.2rem; }
+  .filter-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--white); color: var(--smoke); cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { border-color: var(--ash); color: var(--ash); }
+  .filter-btn.active { background: #1a1f2e; color: var(--white); border-color: #1a1f2e; }
+
+  .events-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+  .event-item { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
+  .event-item:hover { border-color: var(--mist); }
+  .event-accent { height: 4px; }
+  .event-inner { padding: 1rem 1.1rem; }
+  .event-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .event-left { flex: 1; min-width: 0; }
+  .event-name { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+  .event-road { font-size: 12px; color: var(--smoke); margin-bottom: 2px; }
+  .event-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+  .event-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+  .chevron { color: var(--mist); font-size: 16px; transition: transform 0.2s; }
+  .event-item.expanded .chevron { transform: rotate(180deg); }
+  .event-detail { font-size: 13px; line-height: 1.6; color: var(--smoke); margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--border); display: none; }
+  .event-item.expanded .event-detail { display: block; }
+  .event-detail strong { color: var(--ash); }
+
+  .no-events { background: #EAF3DE; border: 1px solid rgba(59,109,17,0.25); border-radius: var(--radius); padding: 1.2rem; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #27500A; margin-bottom: 1.5rem; }
+
+  .corridor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+  .corridor-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 1rem; }
+  .corridor-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--ash); margin-bottom: 4px; }
+  .corridor-count { font-size: 12px; color: var(--smoke); }
+  .corridor-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+  .loading-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--smoke); font-size: 14px; margin-bottom: 1.5rem; }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: #F5C842; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.8rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer { max-width: 960px; margin: 0 auto; padding: 0 2rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .footer-left { font-size: 12px; color: var(--smoke); }
+  .footer-left a { color: #F5C842; text-decoration: none; }
+  .footer-left a:hover { text-decoration: underline; }
+  .refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; background: #1a1f2e; color: var(--white); border: none; border-radius: var(--radius); padding: 0.5rem 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .refresh-btn:hover { background: #F5C842; color: #1a1f2e; }
+  .refresh-btn svg { width: 14px; height: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-glow"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">🚦 Apparatus Routing</div>
+    <h1>Road <span>Conditions</span><br>Tracker</h1>
+    <p class="header-sub">Westminster, Denver Metro &amp; Major Corridors — Live CDOT Data</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill loading" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Loading road conditions…</span>
+  </div>
+</div>
+
+<main class="main">
+  <div id="content-area">
+    <div class="loading-state"><div class="spinner"></div>Fetching live road conditions from CDOT…</div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Data from <a href="https://cotrip.org" target="_blank">CDOT COtrip</a> &bull;
+    <a href="https://cotrip.org" target="_blank">Full map at COtrip.org</a> &bull;
+    <span id="last-updated">—</span>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<script>
+// CDOT / COtrip open data — no API key required
+const CDOT_URL = 'https://data.cotrip.org/api/v1/incidents?apiKey=YOUR_KEY';
+
+// We'll use the CDOT GeoJSON feed which is publicly accessible
+const CDOT_INCIDENTS   = 'https://dtd.cotrip.org/maps/rest/services/public/incidents/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&resultRecordCount=500';
+const CDOT_CONSTRUCTION= 'https://dtd.cotrip.org/maps/rest/services/public/construction/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&resultRecordCount=500';
+const CDOT_CLOSURES    = 'https://dtd.cotrip.org/maps/rest/services/public/closures/MapServer/0/query?where=1%3D1&outFields=*&f=geojson&resultRecordCount=500';
+
+// Westminster area bounding box + major corridors
+const CORRIDORS = [
+  { id: 'i25',   name: 'I-25',    bbox: { minLat:39.5, maxLat:40.2, minLon:-105.05, maxLon:-104.95 } },
+  { id: 'i70',   name: 'I-70',    bbox: { minLat:39.7, maxLat:39.8,  minLon:-105.5,  maxLon:-104.6 } },
+  { id: 'us36',  name: 'US-36',   bbox: { minLat:39.8, maxLat:40.0,  minLon:-105.2,  maxLon:-105.0 } },
+  { id: 'us287', name: 'US-287',  bbox: { minLat:39.7, maxLat:40.1,  minLon:-105.12, maxLon:-105.05} },
+  { id: 'co93',  name: 'CO-93',   bbox: { minLat:39.7, maxLat:40.0,  minLon:-105.25, maxLon:-105.18} },
+  { id: 'local', name: 'Local',   bbox: { minLat:39.80,maxLat:39.92, minLon:-105.12, maxLon:-104.99} },
+];
+
+// Westminster area bounding box (wide net)
+const AREA_BBOX = { minLat:39.5, maxLat:40.2, minLon:-105.5, maxLon:-104.6 };
+
+const TYPE_STYLES = {
+  incident:     { color: '#E24B4A', bg: '#FCEBEB', textColor: '#791F1F', label: 'Incident',     accent: '#E24B4A' },
+  closure:      { color: '#A32D2D', bg: '#FCEBEB', textColor: '#791F1F', label: 'Closure',      accent: '#A32D2D' },
+  construction: { color: '#D4A017', bg: '#FFF9DB', textColor: '#7A5C00', label: 'Construction', accent: '#D4A017' },
+  alert:        { color: '#BA7517', bg: '#FAEEDA', textColor: '#633806', label: 'Alert',        accent: '#BA7517' },
+};
+
+let allEvents = [];
+let activeFilter = 'all';
+
+function setStatus(type, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + type;
+  document.getElementById('status-text').textContent = text;
+}
+
+function inBbox(lat, lon, bbox) {
+  return lat >= bbox.minLat && lat <= bbox.maxLat && lon >= bbox.minLon && lon <= bbox.maxLon;
+}
+
+function getCorridorForEvent(lat, lon) {
+  for (const c of CORRIDORS) {
+    if (inBbox(lat, lon, c.bbox)) return c.name;
+  }
+  return 'Other';
+}
+
+function getRoadName(props) {
+  return props.RoadName || props.roadName || props.ROAD_NAME || props.highway || props.Route || props.ROUTE || '—';
+}
+
+function getDescription(props) {
+  return props.Description || props.description || props.DESCRIPTION || props.EventType || props.detail || '';
+}
+
+function getDirection(props) {
+  return props.Direction || props.direction || props.DIRECTION || '';
+}
+
+function filterAndRender() {
+  const filtered = activeFilter === 'all' ? allEvents : allEvents.filter(e => e.type === activeFilter);
+  renderEvents(filtered);
+}
+
+function renderEvents(events) {
+  const list = document.getElementById('events-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (events.length === 0) {
+    list.innerHTML = `<div class="no-events"><span style="font-size:1.5rem">✅</span><div><strong>No ${activeFilter === 'all' ? '' : activeFilter + ' '}events found</strong> in the Westminster metro area.</div></div>`;
+    return;
+  }
+
+  events.forEach(e => {
+    const style = TYPE_STYLES[e.type] || TYPE_STYLES.alert;
+    const item = document.createElement('div');
+    item.className = 'event-item';
+    item.innerHTML = `
+      <div class="event-accent" style="background:${style.accent}"></div>
+      <div class="event-inner">
+        <div class="event-top">
+          <div class="event-left">
+            <div class="event-name">${e.road} ${e.direction ? '— ' + e.direction : ''}</div>
+            <div class="event-road">${e.corridor} &bull; ${e.location || 'Westminster area'}</div>
+          </div>
+          <div class="event-right">
+            <span class="event-badge" style="background:${style.bg};color:${style.textColor}">${style.label}</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        ${e.description ? `
+        <div class="event-detail">
+          <strong>Details:</strong> ${e.description}<br>
+          ${e.startTime ? `<strong>Reported:</strong> ${e.startTime}` : ''}
+        </div>` : ''}
+      </div>`;
+    if (e.description) {
+      item.querySelector('.event-top').addEventListener('click', () => item.classList.toggle('expanded'));
+    }
+    list.appendChild(item);
+  });
+}
+
+async function loadData() {
+  document.getElementById('content-area').innerHTML = `<div class="loading-state"><div class="spinner"></div>Fetching live road conditions from CDOT…</div>`;
+  setStatus('loading', 'Loading road conditions…');
+
+  try {
+    // Fetch all three feeds in parallel
+    const [incRes, conRes, closRes] = await Promise.allSettled([
+      fetch(CDOT_INCIDENTS),
+      fetch(CDOT_CONSTRUCTION),
+      fetch(CDOT_CLOSURES)
+    ]);
+
+    allEvents = [];
+
+    // Process incidents
+    if (incRes.status === 'fulfilled' && incRes.value.ok) {
+      const data = await incRes.value.json();
+      for (const f of (data.features || [])) {
+        const coords = f.geometry?.coordinates;
+        if (!coords) continue;
+        const lon = coords[0], lat = coords[1];
+        if (!inBbox(lat, lon, AREA_BBOX)) continue;
+        const props = f.properties || {};
+        allEvents.push({
+          type: 'incident',
+          road: getRoadName(props),
+          direction: getDirection(props),
+          description: getDescription(props),
+          location: props.Location || props.location || '',
+          corridor: getCorridorForEvent(lat, lon),
+          startTime: props.StartTime || props.startTime || '',
+          lat, lon
+        });
+      }
+    }
+
+    // Process construction
+    if (conRes.status === 'fulfilled' && conRes.value.ok) {
+      const data = await conRes.value.json();
+      for (const f of (data.features || [])) {
+        const coords = f.geometry?.coordinates;
+        if (!coords) continue;
+        const lon = Array.isArray(coords[0]) ? coords[0][0] : coords[0];
+        const lat = Array.isArray(coords[0]) ? coords[0][1] : coords[1];
+        if (!inBbox(lat, lon, AREA_BBOX)) continue;
+        const props = f.properties || {};
+        allEvents.push({
+          type: 'construction',
+          road: getRoadName(props),
+          direction: getDirection(props),
+          description: getDescription(props),
+          location: props.Location || props.location || '',
+          corridor: getCorridorForEvent(lat, lon),
+          startTime: props.StartDate || props.startDate || '',
+          lat, lon
+        });
+      }
+    }
+
+    // Process closures
+    if (closRes.status === 'fulfilled' && closRes.value.ok) {
+      const data = await closRes.value.json();
+      for (const f of (data.features || [])) {
+        const coords = f.geometry?.coordinates;
+        if (!coords) continue;
+        const lon = Array.isArray(coords[0]) ? coords[0][0] : coords[0];
+        const lat = Array.isArray(coords[0]) ? coords[0][1] : coords[1];
+        if (!inBbox(lat, lon, AREA_BBOX)) continue;
+        const props = f.properties || {};
+        allEvents.push({
+          type: 'closure',
+          road: getRoadName(props),
+          direction: getDirection(props),
+          description: getDescription(props),
+          location: props.Location || props.location || '',
+          corridor: getCorridorForEvent(lat, lon),
+          startTime: props.StartDate || props.startDate || '',
+          lat, lon
+        });
+      }
+    }
+
+    // Sort: closures first, then incidents, then construction
+    const order = { closure: 0, incident: 1, construction: 2, alert: 3 };
+    allEvents.sort((a, b) => (order[a.type] || 3) - (order[b.type] || 3));
+
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+
+    const incidents     = allEvents.filter(e => e.type === 'incident');
+    const closures      = allEvents.filter(e => e.type === 'closure');
+    const construction  = allEvents.filter(e => e.type === 'construction');
+
+    // Status pill
+    if (closures.length > 0) setStatus('danger', `${closures.length} active closure${closures.length > 1 ? 's' : ''} in the area`);
+    else if (incidents.length > 0) setStatus('warning', `${incidents.length} active incident${incidents.length > 1 ? 's' : ''} in the area`);
+    else if (construction.length > 0) setStatus('warning', `${construction.length} construction zone${construction.length > 1 ? 's' : ''} active`);
+    else setStatus('clear', 'No active incidents or closures');
+
+    // Corridor summary
+    const corridorSummary = CORRIDORS.map(c => {
+      const count = allEvents.filter(e => e.corridor === c.name).length;
+      const hasClosure = allEvents.some(e => e.corridor === c.name && e.type === 'closure');
+      const hasIncident = allEvents.some(e => e.corridor === c.name && e.type === 'incident');
+      const color = hasClosure ? '#E24B4A' : hasIncident ? '#D4A017' : count > 0 ? '#BA7517' : '#3B6D11';
+      return { ...c, count, color };
+    });
+
+    document.getElementById('content-area').innerHTML = `
+      <div class="metrics">
+        <div class="metric ${closures.length > 0 ? 'alert-count' : ''}">
+          <div class="metric-label">Closures</div>
+          <div class="metric-value">${closures.length}</div>
+          <div class="metric-unit">Active now</div>
+        </div>
+        <div class="metric ${incidents.length > 0 ? 'alert-count' : ''}">
+          <div class="metric-label">Incidents</div>
+          <div class="metric-value">${incidents.length}</div>
+          <div class="metric-unit">Active now</div>
+        </div>
+        <div class="metric ${construction.length > 0 ? 'construction-count' : ''}">
+          <div class="metric-label">Construction</div>
+          <div class="metric-value">${construction.length}</div>
+          <div class="metric-unit">Active zones</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Total Events</div>
+          <div class="metric-value">${allEvents.length}</div>
+          <div class="metric-unit">In area</div>
+        </div>
+      </div>
+
+      <div class="section-label">Corridor Summary</div>
+      <div class="corridor-grid" style="margin-bottom:1.5rem">
+        ${corridorSummary.map(c => `
+          <div class="corridor-card">
+            <div class="corridor-name">
+              <span class="corridor-dot" style="background:${c.color}"></span>${c.name}
+            </div>
+            <div class="corridor-count">${c.count === 0 ? 'No events' : c.count + ' event' + (c.count > 1 ? 's' : '')}</div>
+          </div>`).join('')}
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;flex-wrap:wrap;gap:8px;">
+        <div class="section-label" style="margin-bottom:0">All Events</div>
+        <div class="filter-row" style="margin-bottom:0">
+          <button class="filter-btn active" onclick="setFilter('all',this)">All (${allEvents.length})</button>
+          <button class="filter-btn" onclick="setFilter('closure',this)">Closures (${closures.length})</button>
+          <button class="filter-btn" onclick="setFilter('incident',this)">Incidents (${incidents.length})</button>
+          <button class="filter-btn" onclick="setFilter('construction',this)">Construction (${construction.length})</button>
+        </div>
+      </div>
+      <div class="events-list" id="events-list"></div>
+
+      <div style="background:#E6F1FB;border:1px solid rgba(55,138,221,0.25);border-radius:var(--radius);padding:0.9rem 1.1rem;font-size:12px;color:#0C447C;line-height:1.5;">
+        ℹ️ For full map view and real-time traffic, visit <a href="https://cotrip.org" target="_blank" style="color:#0C447C;font-weight:600;">COtrip.org</a> or call CDOT at <strong>511</strong>.
+      </div>`;
+
+    filterAndRender();
+
+  } catch (err) {
+    setStatus('loading', 'Unable to load road conditions');
+    document.getElementById('content-area').innerHTML = `
+      <div class="loading-state">
+        <strong>Could not reach CDOT data.</strong><br>
+        Check your connection or visit <a href="https://cotrip.org" target="_blank">COtrip.org</a> directly.<br><br>
+        <small style="color:#aaa">${err.message}</small>
+      </div>`;
+  }
+}
+
+function setFilter(type, btn) {
+  activeFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterAndRender();
+}
+
+loadData();
+setInterval(loadData, 5 * 60 * 1000);
+</script>
+</body>
+</html>
