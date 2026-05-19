@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Active Wildfires — Colorado Region</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
+    --paper: #F9F6F1; --white: #FFFFFF; --border: rgba(44,44,42,0.12); --radius: 10px;
+    --fire: #D85A30; --fire-deep: #4A1B0C; --fire-pale: #FAECE7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ash); min-height: 100vh; }
+
+  .header { background: #1C0D05; color: var(--white); position: relative; overflow: hidden; }
+  .header-inner { max-width: 960px; margin: 0 auto; padding: 2rem 2rem 1.5rem; position: relative; z-index: 1; }
+  .header-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #F5A623; margin-bottom: 0.4rem; font-weight: 500; }
+  .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 7vw, 4.5rem); line-height: 0.95; color: var(--white); }
+  .header h1 span { color: #F5A623; }
+  .header-sub { margin-top: 0.6rem; font-size: 14px; color: rgba(255,255,255,0.5); }
+  .header-glow { position: absolute; right: -80px; top: -80px; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(245,166,35,0.15) 0%, transparent 70%); pointer-events: none; }
+
+  .status-bar { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
+  .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 0.55rem 1.1rem; border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+  .status-pill.clear   { background: #EAF3DE; color: #27500A; }
+  .status-pill.active  { background: var(--fire-pale); color: var(--fire-deep); }
+  .status-pill.loading { background: #FAEEDA; color: #633806; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .clear   .status-dot { background: #3B6D11; }
+  .active  .status-dot { background: var(--fire); animation: pulse 1.5s infinite; }
+  .loading .status-dot { background: #BA7517; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.4);} }
+
+  .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+  .metric { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 0.9rem 1rem; }
+  .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); font-weight: 500; margin-bottom: 4px; }
+  .metric-value { font-size: 1.6rem; font-family: 'Bebas Neue', sans-serif; line-height: 1; color: var(--ash); }
+  .metric-unit { font-size: 11px; color: var(--smoke); margin-top: 2px; }
+  .metric.on-fire .metric-value { color: var(--fire); }
+
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 0.8rem; }
+
+  .state-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.2rem; }
+  .state-tab { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--white); color: var(--smoke); cursor: pointer; transition: all 0.15s; }
+  .state-tab:hover { border-color: var(--fire); color: var(--fire); }
+  .state-tab.active { background: #1C0D05; color: var(--white); border-color: #1C0D05; }
+  .state-tab .count { display: inline-block; background: var(--fire); color: var(--white); font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 10px; margin-left: 4px; }
+
+  .fire-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+  .fire-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
+  .fire-card:hover { border-color: var(--fire); }
+  .fire-card-accent { height: 4px; }
+  .fire-card-inner { padding: 1rem 1.1rem; }
+  .fire-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .fire-card-left { flex: 1; min-width: 0; }
+  .fire-name { font-weight: 700; font-size: 15px; color: var(--ash); margin-bottom: 3px; }
+  .fire-location { font-size: 12px; color: var(--smoke); }
+  .fire-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+  .fire-state-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 4px; background: #1C0D05; color: #F5A623; }
+  .chevron { color: var(--mist); font-size: 16px; transition: transform 0.2s; }
+  .fire-card.expanded .chevron { transform: rotate(180deg); }
+
+  .fire-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .fire-stat { background: var(--fire-pale); border-radius: 6px; padding: 8px 10px; }
+  .fire-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--smoke); font-weight: 500; margin-bottom: 3px; }
+  .fire-stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--fire-deep); line-height: 1; }
+
+  .fire-detail { font-size: 13px; line-height: 1.6; color: var(--smoke); margin-top: 0.7rem; padding-top: 0.7rem; border-top: 1px solid var(--border); display: none; }
+  .fire-card.expanded .fire-detail { display: block; }
+  .fire-detail a { color: var(--fire); text-decoration: none; font-weight: 500; }
+  .fire-detail a:hover { text-decoration: underline; }
+
+  .containment-bar-wrap { margin-top: 8px; }
+  .containment-label { font-size: 11px; color: var(--smoke); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .containment-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .containment-fill { height: 100%; border-radius: 3px; background: linear-gradient(to right, var(--fire), #F5A623); transition: width 0.5s; }
+
+  .no-fires { background: #EAF3DE; border: 1px solid rgba(59,109,17,0.25); border-radius: var(--radius); padding: 1.2rem; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #27500A; margin-bottom: 1.5rem; }
+
+  .loading-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--smoke); font-size: 14px; margin-bottom: 1.5rem; }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--fire); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.8rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer { max-width: 960px; margin: 0 auto; padding: 0 2rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .footer-left { font-size: 12px; color: var(--smoke); }
+  .footer-left a { color: var(--fire); text-decoration: none; }
+  .footer-left a:hover { text-decoration: underline; }
+  .refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; background: #1C0D05; color: var(--white); border: none; border-radius: var(--radius); padding: 0.5rem 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .refresh-btn:hover { background: var(--fire); }
+  .refresh-btn svg { width: 14px; height: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-glow"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">🔥 Situational Awareness</div>
+    <h1>Active <span>Wildfires</span><br>Colorado Region</h1>
+    <p class="header-sub">Colorado, Utah, Wyoming, New Mexico, Kansas &amp; Nebraska — Live NIFC Data</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill loading" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Loading wildfire data…</span>
+  </div>
+</div>
+
+<main class="main">
+  <div id="content-area">
+    <div class="loading-state"><div class="spinner"></div>Fetching active wildfire data from NIFC…</div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Data from <a href="https://www.nifc.gov" target="_blank">NIFC</a> &amp;
+    <a href="https://inciweb.nwcg.gov" target="_blank">InciWeb</a> &bull;
+    <a href="https://inciweb.nwcg.gov/accessible-view/" target="_blank">View all incidents</a> &bull;
+    <span id="last-updated">—</span>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<script>
+// Target states
+const TARGET_STATES = ['Colorado','Utah','Wyoming','New Mexico','Kansas','Nebraska'];
+const STATE_ABBR = {
+  'Colorado':'CO','Utah':'UT','Wyoming':'WY','New Mexico':'NM','Kansas':'KS','Nebraska':'NE'
+};
+
+// NIFC ArcGIS REST API — public, no key required
+// Active fire perimeters and incidents
+const NIFC_URL = 'https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Active_Fires/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=1000';
+const NIFC_IRWIN = 'https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/IRWIN_Calculated_Incidents/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=500';
+
+let allFires = [];
+let activeFilter = 'All';
+
+function formatAcres(n) {
+  if (!n || n === 0) return '—';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString();
+}
+
+function formatDate(ts) {
+  if (!ts) return '—';
+  return new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function getContainment(n) {
+  if (n === null || n === undefined || n === '') return null;
+  return Math.min(100, Math.max(0, parseInt(n) || 0));
+}
+
+function setStatus(cls, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + cls;
+  document.getElementById('status-text').textContent = text;
+}
+
+function renderFires(fires) {
+  const list = document.getElementById('fire-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (fires.length === 0) {
+    list.innerHTML = `<div class="no-fires"><span style="font-size:1.5rem">✅</span><div><strong>No active fires found</strong> in ${activeFilter === 'All' ? 'the region' : activeFilter}.</div></div>`;
+    return;
+  }
+
+  fires.forEach(f => {
+    const containment = getContainment(f.containment);
+    const card = document.createElement('div');
+    card.className = 'fire-card';
+
+    // Color by containment
+    const accentColor = containment === 100 ? '#3B6D11' : containment >= 50 ? '#D4A017' : '#D85A30';
+
+    card.innerHTML = `
+      <div class="fire-card-accent" style="background:${accentColor}"></div>
+      <div class="fire-card-inner">
+        <div class="fire-card-top">
+          <div class="fire-card-left">
+            <div class="fire-name">${f.name}</div>
+            <div class="fire-location">${f.location || f.state}</div>
+          </div>
+          <div class="fire-card-right">
+            <span class="fire-state-badge">${STATE_ABBR[f.state] || f.state}</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="fire-stats">
+          <div class="fire-stat">
+            <div class="fire-stat-label">Acres</div>
+            <div class="fire-stat-value">${formatAcres(f.acres)}</div>
+          </div>
+          <div class="fire-stat">
+            <div class="fire-stat-label">Contained</div>
+            <div class="fire-stat-value">${containment !== null ? containment + '%' : '—'}</div>
+          </div>
+          <div class="fire-stat">
+            <div class="fire-stat-label">Type</div>
+            <div class="fire-stat-value" style="font-size:0.9rem">${f.type || 'Wildfire'}</div>
+          </div>
+        </div>
+        <div class="fire-detail">
+          ${containment !== null ? `
+          <div class="containment-bar-wrap">
+            <div class="containment-label"><span>Containment</span><span>${containment}%</span></div>
+            <div class="containment-bar"><div class="containment-fill" style="width:${containment}%"></div></div>
+          </div><br>` : ''}
+          <strong>Discovered:</strong> ${formatDate(f.discovered)}<br>
+          ${f.cause ? `<strong>Cause:</strong> ${f.cause}<br>` : ''}
+          ${f.agency ? `<strong>Agency:</strong> ${f.agency}<br>` : ''}
+          ${f.url ? `<br><a href="${f.url}" target="_blank">↗ View on InciWeb</a>` : ''}
+        </div>
+      </div>`;
+
+    card.querySelector('.fire-card-top').addEventListener('click', () => card.classList.toggle('expanded'));
+    list.appendChild(card);
+  });
+}
+
+function setFilter(state, btn) {
+  activeFilter = state;
+  document.querySelectorAll('.state-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = state === 'All' ? allFires : allFires.filter(f => f.state === state);
+  renderFires(filtered);
+}
+
+async function loadData() {
+  document.getElementById('content-area').innerHTML = `<div class="loading-state"><div class="spinner"></div>Fetching active wildfire data from NIFC…</div>`;
+  setStatus('loading', 'Loading wildfire data…');
+
+  try {
+    const res  = await fetch(NIFC_URL);
+    const data = await res.json();
+
+    const features = data.features || [];
+
+    // Filter to target states and parse
+    allFires = features
+      .map(f => {
+        const p = f.attributes || {};
+        return {
+          name:        p.IncidentName || p.Fire_Name || p.Name || 'Unknown Fire',
+          state:       p.POOState || p.State || p.state || '',
+          location:    p.POOCounty ? `${p.POOCounty} County, ${p.POOState || ''}` : (p.Location || ''),
+          acres:       parseFloat(p.GISAcres || p.Acres || p.DailyAcres || 0),
+          containment: p.PercentContained ?? p.Percent_Contained ?? null,
+          type:        p.IncidentTypeCategory || p.FireType || 'Wildfire',
+          discovered:  p.FireDiscoveryDateTime || p.Discovered || null,
+          cause:       p.FireCause || p.Cause || '',
+          agency:      p.POOAgency || p.Agency || '',
+          url:         p.InciWebURL || p.URL || '',
+        };
+      })
+      .filter(f => TARGET_STATES.includes(f.state) && f.acres > 0)
+      .sort((a, b) => b.acres - a.acres);
+
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+
+    if (allFires.length === 0) {
+      setStatus('clear', 'No active wildfires in the Colorado region');
+    } else {
+      setStatus('active', `${allFires.length} active wildfire${allFires.length > 1 ? 's' : ''} in the region`);
+    }
+
+    const totalAcres = allFires.reduce((s, f) => s + (f.acres || 0), 0);
+    const coFires    = allFires.filter(f => f.state === 'Colorado');
+    const stateCounts = TARGET_STATES.reduce((acc, s) => {
+      acc[s] = allFires.filter(f => f.state === s).length;
+      return acc;
+    }, {});
+
+    document.getElementById('content-area').innerHTML = `
+      <div class="metrics">
+        <div class="metric ${allFires.length > 0 ? 'on-fire' : ''}">
+          <div class="metric-label">Active Fires</div>
+          <div class="metric-value">${allFires.length}</div>
+          <div class="metric-unit">In region</div>
+        </div>
+        <div class="metric ${coFires.length > 0 ? 'on-fire' : ''}">
+          <div class="metric-label">In Colorado</div>
+          <div class="metric-value">${coFires.length}</div>
+          <div class="metric-unit">Active now</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Total Acres</div>
+          <div class="metric-value">${formatAcres(totalAcres)}</div>
+          <div class="metric-unit">Burning</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Largest</div>
+          <div class="metric-value">${allFires[0] ? formatAcres(allFires[0].acres) : '—'}</div>
+          <div class="metric-unit">${allFires[0]?.name || '—'}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;flex-wrap:wrap;gap:8px;">
+        <div class="section-label" style="margin-bottom:0">Active Fires by State</div>
+      </div>
+      <div class="state-tabs" id="state-tabs">
+        <button class="state-tab active" onclick="setFilter('All',this)">All <span class="count">${allFires.length}</span></button>
+        ${TARGET_STATES.filter(s => stateCounts[s] > 0).map(s =>
+          `<button class="state-tab" onclick="setFilter('${s}',this)">${STATE_ABBR[s]} <span class="count">${stateCounts[s]}</span></button>`
+        ).join('')}
+      </div>
+
+      <div class="fire-list" id="fire-list"></div>
+
+      <div style="background:#FAEEDA;border:1px solid rgba(186,117,23,0.3);border-radius:var(--radius);padding:0.9rem 1.1rem;font-size:12px;color:#633806;line-height:1.5;">
+        ℹ️ Data from NIFC Active Fire mapping. For deployment information and official incident details visit
+        <a href="https://inciweb.nwcg.gov" target="_blank" style="color:#633806;font-weight:600">InciWeb</a> or
+        <a href="https://www.nifc.gov/fire-information/nfn" target="_blank" style="color:#633806;font-weight:600">NIFC</a>.
+      </div>`;
+
+    renderFires(allFires);
+
+  } catch(err) {
+    setStatus('loading', 'Unable to load wildfire data');
+    document.getElementById('content-area').innerHTML = `
+      <div class="loading-state">
+        <strong>Could not reach NIFC data.</strong><br>
+        Check your connection or visit <a href="https://inciweb.nwcg.gov" target="_blank" style="color:var(--fire)">InciWeb</a> directly.<br><br>
+        <small style="color:#aaa">${err.message}</small>
+      </div>`;
+  }
+}
+
+loadData();
+setInterval(loadData, 15 * 60 * 1000); // refresh every 15 minutes
+</script>
+</body>
+</html>
