@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:monospace;padding:20px;font-size:14px">
+<h2>Shift Debug</h2>
+<div id="out"></div>
+<script>
+var ANCHOR   = new Date('2025-05-19T13:00:00Z');
+var NAMES    = ['B','A','C'];
+var CYCLE_MS = 48 * 60 * 60 * 1000;
+var FULL_MS  = 144 * 60 * 60 * 1000;
+
+function getShiftInfo(now) {
+  var elapsed = now - ANCHOR;
+  var posMs   = ((elapsed % FULL_MS) + FULL_MS) % FULL_MS;
+  var idx     = Math.floor(posMs / CYCLE_MS) % 3;
+  var start   = new Date(now.getTime() - (posMs % CYCLE_MS));
+  var end     = new Date(start.getTime() + CYCLE_MS);
+  return {name: NAMES[idx], start: start, end: end};
+}
+
+var now = new Date();
+var cur = getShiftInfo(now);
+var nxt = getShiftInfo(new Date(cur.end.getTime() + 1000));
+
+var out = document.getElementById('out');
+out.innerHTML = [
+  '<b>Now:</b> ' + now.toString(),
+  '<b>Now UTC:</b> ' + now.toUTCString(),
+  '<b>Anchor:</b> ' + ANCHOR.toString(),
+  '<b>Elapsed ms:</b> ' + (now - ANCHOR),
+  '<b>Elapsed hrs:</b> ' + ((now - ANCHOR) / 3600000).toFixed(2),
+  '<b>posMs:</b> ' + (((now - ANCHOR) % FULL_MS + FULL_MS) % FULL_MS),
+  '<b>idx:</b> ' + Math.floor((((now - ANCHOR) % FULL_MS + FULL_MS) % FULL_MS) / CYCLE_MS) % 3,
+  '<b>Current shift:</b> ' + cur.name,
+  '<b>Shift ends:</b> ' + cur.end.toString(),
+  '<b>Next shift:</b> ' + nxt.name,
+  '<b>Next starts:</b> ' + nxt.start.toString(),
+].join('<br><br>');
+</script>
+</body>
+</html>
