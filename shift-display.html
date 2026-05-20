@@ -289,22 +289,20 @@ const API_BASE   = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 const SHIFT_ANCHOR = new Date('2026-05-19T13:00:00Z'); // 0700 MDT = 1300 UTC
 const SHIFT_NAMES  = ['B','A','C'];
 const SHIFT_COLORS = { A:'#FFFFFF', B:'#E24B4A', C:'#4CAF7D' };
+const CYCLE_MS     = 48 * 60 * 60 * 1000;
+const FULL_MS      = 144 * 60 * 60 * 1000;
 
 function getShiftInfo(now) {
-  const diffHrs = (now - SHIFT_ANCHOR) / 3600000;
-  const pos = ((diffHrs % 144) + 144) % 144;
-  const idx = Math.floor(pos / 48) % 3;
-  const hrsIntoShift = pos % 48;
-  const start = new Date(now.getTime() - hrsIntoShift * 3600000);
-  const end   = new Date(start.getTime() + 48 * 3600000);
-  return { name: SHIFT_NAMES[idx], start, end };
+  var elapsed = now - SHIFT_ANCHOR;
+  var posMs   = ((elapsed % FULL_MS) + FULL_MS) % FULL_MS;
+  var idx     = Math.floor(posMs / CYCLE_MS) % 3;
+  var start   = new Date(now.getTime() - (posMs % CYCLE_MS));
+  var end     = new Date(start.getTime() + CYCLE_MS);
+  return { name: SHIFT_NAMES[idx], start: start, end: end };
 }
 
 function getNextShiftInfo(end) {
-  const diffHrs = (end - SHIFT_ANCHOR) / 3600000;
-  const pos = ((diffHrs % 144) + 144) % 144;
-  const idx = Math.floor(pos / 48) % 3;
-  return { name: SHIFT_NAMES[idx], start: end, end: new Date(end.getTime() + 48*3600000) };
+  return getShiftInfo(new Date(end.getTime() + 1000));
 }
 
 function formatShiftDate(d) {
