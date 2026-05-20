@@ -71,6 +71,38 @@
 
   .app-footer { text-align: center; padding: 1rem 1rem 0.5rem; font-size: 11px; color: var(--text3); }
 
+  /* ── ALERT BANNERS ── */
+  .alert-banners { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.2rem; }
+  .alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .alert-banner:active { opacity: 0.8; }
+  .alert-banner-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .alert-banner-text { flex: 1; }
+  .alert-banner-title { font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .alert-banner-sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+  .alert-banner-arrow { font-size: 14px; opacity: 0.6; flex-shrink: 0; }
+
+  .alert-banner.danger  { background: #FCEBEB; border-color: rgba(226,75,74,0.3);  color: #791F1F; }
+  .alert-banner.warning { background: #FAEEDA; border-color: rgba(186,117,23,0.3); color: #633806; }
+  .alert-banner.flood   { background: #E6F1FB; border-color: rgba(55,138,221,0.3); color: #0C447C; }
+  .alert-banner.fire    { background: #FAECE7; border-color: rgba(216,90,48,0.3);  color: #4A1B0C; }
+
+  @media (prefers-color-scheme: dark) {
+    .alert-banner.danger  { background: rgba(226,75,74,0.15);  border-color: rgba(226,75,74,0.3);  color: #FF8A80; }
+    .alert-banner.warning { background: rgba(186,117,23,0.15); border-color: rgba(186,117,23,0.3); color: #FFD180; }
+    .alert-banner.flood   { background: rgba(55,138,221,0.15); border-color: rgba(55,138,221,0.3); color: #82B1FF; }
+    .alert-banner.fire    { background: rgba(216,90,48,0.15);  border-color: rgba(216,90,48,0.3);  color: #FF9E80; }
+  }
+
   @media (min-width: 768px) {
     .app-header { padding: calc(env(safe-area-inset-top) + 1.4rem) 2.5rem 1.4rem; }
     .app-title { font-size: 2.2rem; }
@@ -131,6 +163,9 @@
     </div>
     <div class="install-close" onclick="dismissInstall()">✕</div>
   </div>
+
+  <!-- ALERT BANNERS -->
+  <div class="alert-banners" id="alert-banners" style="display:none"></div>
 
   <div class="section">
     <div class="section-title">Weather & Alerts</div>
@@ -257,6 +292,118 @@ function updateShiftBanner() {
   document.getElementById('shift-next').innerHTML       = 'Next: <strong style="color:' + COLORS[nxt.name] + '">' + nxt.name + ' Shift</strong><br>' + fmtDate(nxt.start);
 }
 updateShiftBanner();
+
+// ── ALERT BANNERS ─────────────────────────────────
+const NWS_ZONES   = ['COZ040','COZ038','COC001','COC059'];
+const BURN_LEVELS = ['stage1','stage2','stage3','total'];
+const GAUGE_SITES = ['06719505','06719880','06719960','06720820'];
+const GAUGE_ACTION= {'06719505':6.5,'06719880':3.5,'06719960':3.5,'06720820':4.0};
+const GAUGE_FLOOD = {'06719505':9.0,'06719880':5.0,'06719960':5.0,'06720820':6.0};
+
+const FIRE_KW = ['red flag','fire weather','tornado','severe thunderstorm','flash flood','flood warning','blizzard','winter storm','excessive heat','high wind','ice storm'];
+
+async function checkAlerts() {
+  var banners = [];
+
+  // 1. Check NWS alerts
+  try {
+    var seen = {};
+    var alerts = [];
+    await Promise.all(NWS_ZONES.map(function(zone) {
+      return fetch('https://api.weather.gov/alerts/active?zone=' + zone, {headers:{'User-Agent':'WestminsterFDHub/1.0'}})
+        .then(function(r){return r.json();})
+        .then(function(d){
+          (d.features||[]).forEach(function(f){
+            if(!seen[f.id]) { seen[f.id]=1; alerts.push(f); }
+          });
+        }).catch(function(){});
+    }));
+
+    var fireAlerts = alerts.filter(function(a){
+      var e = (a.properties.event||'').toLowerCase();
+      return FIRE_KW.some(function(k){return e.includes(k);});
+    });
+
+    // Group by type
+    var rfws   = fireAlerts.filter(function(a){return (a.properties.event||'').toLowerCase().includes('red flag');});
+    var tornado = fireAlerts.filter(function(a){return (a.properties.event||'').toLowerCase().includes('tornado');});
+    var severe  = fireAlerts.filter(function(a){return (a.properties.event||'').toLowerCase().includes('severe thunderstorm');});
+    var flood   = fireAlerts.filter(function(a){var e=(a.properties.event||'').toLowerCase();return e.includes('flood');});
+    var heat    = fireAlerts.filter(function(a){var e=(a.properties.event||'').toLowerCase();return e.includes('heat');});
+    var wind    = fireAlerts.filter(function(a){var e=(a.properties.event||'').toLowerCase();return e.includes('wind');});
+    var winter  = fireAlerts.filter(function(a){var e=(a.properties.event||'').toLowerCase();return e.includes('blizzard')||e.includes('winter storm')||e.includes('ice storm');});
+
+    if (tornado.length)  banners.push({type:'danger',  icon:'🌪️', title: tornado[0].properties.event,  sub:'Adams & Jefferson Counties', href:'weather.html'});
+    if (rfws.length)     banners.push({type:'fire',    icon:'🔥', title: rfws[0].properties.event,     sub:'Fire weather alert active',  href:'firedanger.html'});
+    if (severe.length)   banners.push({type:'warning', icon:'⛈', title: severe[0].properties.event,   sub: severe.length + ' alert' + (severe.length>1?'s':'') + ' active', href:'weather.html'});
+    if (flood.length)    banners.push({type:'flood',   icon:'🌊', title: flood[0].properties.event,    sub: flood.length + ' alert' + (flood.length>1?'s':'') + ' active',  href:'weather.html'});
+    if (heat.length)     banners.push({type:'danger',  icon:'🌡️', title: heat[0].properties.event,     sub:'Heat alert active',          href:'rehab-heat.html'});
+    if (wind.length)     banners.push({type:'warning', icon:'💨', title: wind[0].properties.event,     sub:'Wind alert active',          href:'weather.html'});
+    if (winter.length)   banners.push({type:'flood',   icon:'❄️', title: winter[0].properties.event,   sub:'Winter weather alert',       href:'weather.html'});
+  } catch(e) {}
+
+  // 2. Check burn ban status from JSONbin
+  try {
+    var res  = await fetch('https://api.jsonbin.io/v3/b/' + '6a0ca0e6ee5a733b12e69903' + '/latest', {headers:{'X-Master-Key':'$2a$10$AmSubp9/w6PuIlI6TPzuu.oDt3nlAY/4VL30jINVp2iZuvguywN2.'}});
+    var json = await res.json();
+    var d    = json.record;
+    var areas = [
+      {key:'jefferson',    name:'Jefferson County'},
+      {key:'adams',        name:'Adams County'},
+      {key:'westminster',  name:'City of Westminster'},
+    ];
+    var active = areas.filter(function(a){ return BURN_LEVELS.includes((d[a.key]||{}).level); });
+    if (active.length > 0) {
+      var worst = active.find(function(a){return (d[a.key]||{}).level==='total';})
+               || active.find(function(a){return (d[a.key]||{}).level==='stage3';})
+               || active.find(function(a){return (d[a.key]||{}).level==='stage2';})
+               || active[0];
+      var status = (d[worst.key]||{}).status || 'Restrictions in effect';
+      banners.push({type:'fire', icon:'🚫', title: worst.name + ': ' + status, sub: active.length + ' area' + (active.length>1?'s have':' has') + ' active burn restrictions', href:'burnban.html'});
+    }
+  } catch(e) {}
+
+  // 3. Check stream gauges
+  try {
+    var sites = GAUGE_SITES.join(',');
+    var gRes  = await fetch('https://waterservices.usgs.gov/nwis/iv/?sites=' + sites + '&parameterCd=00065&format=json');
+    var gData = await gRes.json();
+    var elevated = [], flooded = [];
+    (gData.value.timeSeries||[]).forEach(function(ts){
+      var siteNo = ts.sourceInfo.siteCode[0].value;
+      var vals   = (ts.values[0].value||[]);
+      var latest = vals[vals.length-1];
+      if (!latest) return;
+      var stage  = parseFloat(latest.value);
+      if (isNaN(stage)) return;
+      if (stage >= GAUGE_FLOOD[siteNo])  flooded.push(ts.sourceInfo.siteName);
+      else if (stage >= GAUGE_ACTION[siteNo]) elevated.push(ts.sourceInfo.siteName);
+    });
+    if (flooded.length)   banners.push({type:'danger', icon:'🌊', title:'Flood Stage — ' + flooded[0].split(' at ')[0],   sub: flooded.length + ' gauge' + (flooded.length>1?'s':'') + ' at or above flood stage',    href:'stream-gauges.html'});
+    else if (elevated.length) banners.push({type:'flood', icon:'🌊', title:'Elevated — ' + elevated[0].split(' at ')[0], sub: elevated.length + ' gauge' + (elevated.length>1?'s':'') + ' above action stage', href:'stream-gauges.html'});
+  } catch(e) {}
+
+  // Render banners
+  var container = document.getElementById('alert-banners');
+  if (banners.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'flex';
+  container.innerHTML = banners.map(function(b) {
+    return '<a class="alert-banner ' + b.type + '" href="' + b.href + '">' +
+      '<div class="alert-banner-icon">' + b.icon + '</div>' +
+      '<div class="alert-banner-text">' +
+        '<div class="alert-banner-title">' + b.title + '</div>' +
+        '<div class="alert-banner-sub">' + b.sub + '</div>' +
+      '</div>' +
+      '<div class="alert-banner-arrow">→</div>' +
+    '</a>';
+  }).join('');
+}
+
+checkAlerts();
+setInterval(checkAlerts, 10 * 60 * 1000);
 
 // Install prompt
 function isStandalone() {
