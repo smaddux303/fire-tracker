@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Burn Ban Status — Westminster, CO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
+    --paper: #F9F6F1; --white: #FFFFFF; --border: rgba(44,44,42,0.12); --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ash); min-height: 100vh; }
+
+  .header { background: #1c1a0f; color: var(--white); position: relative; overflow: hidden; }
+  .header-inner { max-width: 900px; margin: 0 auto; padding: 2rem 2rem 1.5rem; position: relative; z-index: 1; }
+  .header-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #FAC775; margin-bottom: 0.4rem; font-weight: 500; }
+  .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 7vw, 4.5rem); line-height: 0.95; color: var(--white); }
+  .header h1 span { color: #FAC775; }
+  .header-sub { margin-top: 0.6rem; font-size: 14px; color: rgba(255,255,255,0.5); }
+  .header-glow { position: absolute; right: -80px; top: -80px; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(250,199,117,0.12) 0%, transparent 70%); pointer-events: none; }
+
+  .status-bar { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
+  .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 0.55rem 1.1rem; border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+  .status-pill.clear   { background: #EAF3DE; color: #27500A; }
+  .status-pill.warning { background: #FAEEDA; color: #633806; }
+  .status-pill.danger  { background: #FCEBEB; color: #791F1F; }
+  .status-pill.loading { background: #FAEEDA; color: #633806; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .clear   .status-dot { background: #3B6D11; }
+  .warning .status-dot { background: #BA7517; animation: pulse 2s infinite; }
+  .danger  .status-dot { background: #E24B4A; animation: pulse 1.5s infinite; }
+  .loading .status-dot { background: #BA7517; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.4);} }
+
+  .main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+  .county-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 2rem; }
+  .county-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .county-card-accent { height: 6px; }
+  .county-card-inner { padding: 1.2rem 1.3rem; }
+  .county-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 6px; }
+  .county-status { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; line-height: 1; margin-bottom: 6px; }
+  .county-notes { font-size: 13px; color: var(--smoke); line-height: 1.5; margin-bottom: 10px; }
+  .county-meta { font-size: 11px; color: var(--mist); }
+  .county-links { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .county-link { font-size: 12px; color: #378ADD; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  .county-link:hover { text-decoration: underline; }
+
+  .status-none   { color: #3B6D11; } .accent-none   { background: #3B6D11; }
+  .status-stage1 { color: #BA7517; } .accent-stage1 { background: #BA7517; }
+  .status-stage2 { color: #D85A30; } .accent-stage2 { background: #D85A30; }
+  .status-stage3 { color: #A32D2D; } .accent-stage3 { background: #A32D2D; }
+  .status-total  { color: #A32D2D; } .accent-total  { background: #A32D2D; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--smoke); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  .admin-toggle-wrap { text-align: right; margin-bottom: 1rem; }
+  .admin-toggle-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; background: transparent; color: var(--mist); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 14px; cursor: pointer; transition: all 0.15s; }
+  .admin-toggle-btn:hover { color: var(--smoke); border-color: var(--smoke); }
+
+  .admin-panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 2rem; display: none; }
+  .admin-panel.visible { display: block; }
+
+  .admin-login { padding: 2rem; text-align: center; }
+  .admin-login-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--ash); margin-bottom: 0.4rem; }
+  .admin-login-sub { font-size: 13px; color: var(--smoke); margin-bottom: 1.2rem; }
+  .admin-login-row { display: flex; gap: 8px; max-width: 320px; margin: 0 auto; }
+  .admin-login-row input { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 14px; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; outline: none; }
+  .admin-login-row input:focus { border-color: #BA7517; }
+  .admin-login-row button { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; background: #1c1a0f; color: var(--white); border: none; border-radius: var(--radius); padding: 10px 18px; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .admin-login-row button:hover { background: #BA7517; }
+  .admin-error { font-size: 12px; color: #A32D2D; margin-top: 8px; }
+
+  .admin-form { display: none; }
+  .admin-form.visible { display: block; }
+  .admin-form-header { background: #1c1a0f; color: var(--white); padding: 1rem 1.5rem; }
+  .admin-form-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: #FAC775; }
+  .admin-form-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .admin-form-body { padding: 1.5rem; }
+  .admin-county { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; margin-bottom: 12px; }
+  .admin-county-name { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); margin-bottom: 10px; }
+  .admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .admin-field { margin-bottom: 8px; }
+  .admin-field label { display: block; font-size: 11px; color: var(--smoke); margin-bottom: 4px; font-weight: 500; }
+  .admin-field select, .admin-field input, .admin-field textarea { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; outline: none; color: var(--ash); background: var(--white); }
+  .admin-field select:focus, .admin-field input:focus, .admin-field textarea:focus { border-color: #BA7517; }
+  .admin-field textarea { resize: vertical; min-height: 56px; }
+  .admin-field.full { grid-column: 1 / -1; }
+  .admin-footer { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-top: 1px solid var(--border); gap: 10px; flex-wrap: wrap; }
+  .admin-updated-by { display: flex; align-items: center; gap: 8px; }
+  .admin-updated-by label { font-size: 12px; color: var(--smoke); white-space: nowrap; }
+  .admin-updated-by input { font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; outline: none; width: 160px; }
+  .admin-updated-by input:focus { border-color: #BA7517; }
+  .save-btn { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; background: #3B6D11; color: var(--white); border: none; border-radius: var(--radius); padding: 10px 24px; cursor: pointer; transition: background 0.15s; }
+  .save-btn:hover { background: #27500A; }
+  .save-btn:disabled { background: var(--mist); cursor: not-allowed; }
+  .save-status { font-size: 13px; font-weight: 500; }
+  .save-status.success { color: #3B6D11; }
+  .save-status.error   { color: #A32D2D; }
+
+  .loading-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--smoke); font-size: 14px; }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: #BA7517; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.8rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer { max-width: 900px; margin: 0 auto; padding: 0 2rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .footer-left { font-size: 12px; color: var(--smoke); }
+  .footer-left a { color: #BA7517; text-decoration: none; }
+  .footer-left a:hover { text-decoration: underline; }
+  .refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; background: #1c1a0f; color: var(--white); border: none; border-radius: var(--radius); padding: 0.5rem 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+  .refresh-btn:hover { background: #BA7517; }
+  .refresh-btn svg { width: 14px; height: 14px; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(13,27,42,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    display: none;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 999;
+  }
+  .bottom-nav.pwa-active { display: flex; }
+  .bottom-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 4px 20px;
+    border-radius: 8px;
+    transition: color 0.15s;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+  .bottom-nav-btn:active { color: #F5C842; transform: scale(0.92); }
+  .bottom-nav-btn.home { color: #F5C842; }
+  .bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
+  /* Push page content above nav bar — only when PWA active */
+  body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-glow"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">🔥 Burn Restriction Status</div>
+    <h1>Burn <span>Ban</span><br>Tracker</h1>
+    <p class="header-sub">Jefferson County, Adams County &amp; City of Westminster</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill loading" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Loading status…</span>
+  </div>
+</div>
+
+<main class="main">
+  <div id="content-area">
+    <div class="loading-state"><div class="spinner"></div>Loading current burn ban status…</div>
+  </div>
+
+  <div class="admin-toggle-wrap">
+    <button class="admin-toggle-btn" onclick="toggleAdmin()">🔒 Update Status</button>
+  </div>
+
+  <div class="admin-panel" id="admin-panel">
+    <div class="admin-login" id="admin-login">
+      <div class="admin-login-title">Staff Update</div>
+      <div class="admin-login-sub">Enter the department password to update burn ban status.</div>
+      <div class="admin-login-row">
+        <input type="password" id="pwd-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPassword()">
+        <button onclick="checkPassword()">Enter</button>
+      </div>
+      <div class="admin-error" id="pwd-error"></div>
+    </div>
+
+    <div class="admin-form" id="admin-form">
+      <div class="admin-form-header">
+        <div class="admin-form-title">Update Burn Ban Status</div>
+        <div class="admin-form-sub">Changes go live immediately for everyone.</div>
+      </div>
+      <div class="admin-form-body">
+
+        <div class="admin-county">
+          <div class="admin-county-name">Jefferson County</div>
+          <div class="admin-row">
+            <div class="admin-field">
+              <label>Restriction Level</label>
+              <select id="jeff-level" onchange="syncJeffStatus()">
+                <option value="none">No Restrictions</option>
+                <option value="stage1">Stage 1</option>
+                <option value="stage2">Stage 2</option>
+                <option value="total">Total Ban</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label>Status Label</label>
+              <input type="text" id="jeff-status" placeholder="e.g. Stage 1">
+            </div>
+            <div class="admin-field full">
+              <label>Notes</label>
+              <textarea id="jeff-notes" placeholder="Brief description of restrictions…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-county">
+          <div class="admin-county-name">Adams County</div>
+          <div class="admin-row">
+            <div class="admin-field">
+              <label>Restriction Level</label>
+              <select id="adams-level" onchange="syncAdamsStatus()">
+                <option value="none">No Restrictions</option>
+                <option value="stage1">Level 1</option>
+                <option value="stage2">Level 2</option>
+                <option value="stage3">Level 3</option>
+                <option value="total">Total Ban</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label>Status Label</label>
+              <input type="text" id="adams-status" placeholder="e.g. Level 1">
+            </div>
+            <div class="admin-field full">
+              <label>Notes</label>
+              <textarea id="adams-notes" placeholder="Brief description of restrictions…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-county">
+          <div class="admin-county-name">City of Westminster</div>
+          <div class="admin-row">
+            <div class="admin-field">
+              <label>Restriction Level</label>
+              <select id="west-level" onchange="syncWestStatus()">
+                <option value="none">No Restrictions</option>
+                <option value="stage1">Stage 1</option>
+                <option value="stage2">Stage 2</option>
+                <option value="total">Total Ban</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label>Status Label</label>
+              <input type="text" id="west-status" placeholder="e.g. Stage 1">
+            </div>
+            <div class="admin-field full">
+              <label>Notes</label>
+              <textarea id="west-notes" placeholder="Brief description of restrictions…"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="admin-footer">
+        <div class="admin-updated-by">
+          <label>Updated by:</label>
+          <input type="text" id="updated-by" placeholder="Your name">
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="save-status" id="save-status"></span>
+          <button class="save-btn" id="save-btn" onclick="saveStatus()">Save &amp; Publish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Status maintained by fire department staff &bull; <span id="last-fetch">—</span><br>
+    Official sources:
+    <a href="https://www.jeffcosheriffco.gov/safety/wildland-fire/fire-restrictions" target="_blank">Jefferson County</a> &bull;
+    <a href="https://adamssheriffco.gov/resources/fire-restrictions/" target="_blank">Adams County</a>
+  </div>
+  <button class="refresh-btn" onclick="loadStatus()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<script>
+const BIN_ID     = '6a0ca0e6ee5a733b12e69903';
+const MASTER_KEY = '$2a$10$AmSubp9/w6PuIlI6TPzuu.oDt3nlAY/4VL30jINVp2iZuvguywN2.';
+const PASSWORD   = 'WestyFD';
+const API_BASE   = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+
+const COUNTIES = [
+  { key: 'jefferson',   name: 'Jefferson County',    link: 'https://www.jeffcosheriffco.gov/safety/wildland-fire/fire-restrictions', linkLabel: 'Official Jefferson County page' },
+  { key: 'adams',       name: 'Adams County',        link: 'https://adamssheriffco.gov/resources/fire-restrictions/',               linkLabel: 'Official Adams County page' },
+  { key: 'westminster', name: 'City of Westminster', link: null, linkLabel: null }
+];
+
+const LEVEL_MAP = {
+  none:   { accentClass:'accent-none',   statusClass:'status-none',   pillType:'clear',   pillText:'No active burn restrictions' },
+  stage1: { accentClass:'accent-stage1', statusClass:'status-stage1', pillType:'warning', pillText:'Fire restrictions in effect' },
+  stage2: { accentClass:'accent-stage2', statusClass:'status-stage2', pillType:'warning', pillText:'Stage 2 restrictions in effect' },
+  stage3: { accentClass:'accent-stage3', statusClass:'status-stage3', pillType:'danger',  pillText:'Stage 3 restrictions in effect' },
+  total:  { accentClass:'accent-total',  statusClass:'status-total',  pillType:'danger',  pillText:'Total fire ban in effect' },
+};
+
+const JEFF_LABELS  = { none:'No Restrictions', stage1:'Stage 1',  stage2:'Stage 2',  total:'Total Ban' };
+const ADAMS_LABELS = { none:'No Restrictions', stage1:'Level 1',  stage2:'Level 2',  stage3:'Level 3', total:'Total Ban' };
+const WEST_LABELS  = { none:'No Restrictions', stage1:'Stage 1',  stage2:'Stage 2',  total:'Total Ban' };
+
+let currentData = null;
+
+function setStatus(type, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + type;
+  document.getElementById('status-text').textContent = text;
+}
+
+function syncJeffStatus()  { document.getElementById('jeff-status').value  = JEFF_LABELS[document.getElementById('jeff-level').value]   || ''; }
+function syncAdamsStatus() { document.getElementById('adams-status').value = ADAMS_LABELS[document.getElementById('adams-level').value] || ''; }
+function syncWestStatus()  { document.getElementById('west-status').value  = WEST_LABELS[document.getElementById('west-level').value]   || ''; }
+
+function toggleAdmin() {
+  const panel = document.getElementById('admin-panel');
+  panel.classList.toggle('visible');
+  if (panel.classList.contains('visible')) document.getElementById('pwd-input').focus();
+}
+
+function checkPassword() {
+  const val = document.getElementById('pwd-input').value;
+  if (val === PASSWORD) {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-form').classList.add('visible');
+    if (currentData) populateForm(currentData);
+  } else {
+    document.getElementById('pwd-error').textContent = 'Incorrect password. Try again.';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+function populateForm(data) {
+  const j = data.jefferson   || {};
+  const a = data.adams       || {};
+  const w = data.westminster || {};
+  document.getElementById('jeff-level').value  = j.level  || 'none';
+  document.getElementById('jeff-status').value = j.status || '';
+  document.getElementById('jeff-notes').value  = j.notes  || '';
+  document.getElementById('adams-level').value  = a.level  || 'none';
+  document.getElementById('adams-status').value = a.status || '';
+  document.getElementById('adams-notes').value  = a.notes  || '';
+  document.getElementById('west-level').value  = w.level  || 'none';
+  document.getElementById('west-status').value = w.status || '';
+  document.getElementById('west-notes').value  = w.notes  || '';
+}
+
+async function saveStatus() {
+  const btn = document.getElementById('save-btn');
+  const statusEl = document.getElementById('save-status');
+  const updatedBy = document.getElementById('updated-by').value.trim() || 'Staff';
+  const today = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  statusEl.textContent = '';
+  statusEl.className = 'save-status';
+
+  const newData = {
+    jefferson: {
+      status:    document.getElementById('jeff-status').value  || JEFF_LABELS[document.getElementById('jeff-level').value],
+      level:     document.getElementById('jeff-level').value,
+      notes:     document.getElementById('jeff-notes').value,
+      updated:   today, updatedBy
+    },
+    adams: {
+      status:    document.getElementById('adams-status').value || ADAMS_LABELS[document.getElementById('adams-level').value],
+      level:     document.getElementById('adams-level').value,
+      notes:     document.getElementById('adams-notes').value,
+      updated:   today, updatedBy
+    },
+    westminster: {
+      status:    document.getElementById('west-status').value  || WEST_LABELS[document.getElementById('west-level').value],
+      level:     document.getElementById('west-level').value,
+      notes:     document.getElementById('west-notes').value,
+      updated:   today, updatedBy
+    }
+  };
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
+      body: JSON.stringify(newData)
+    });
+    if (!res.ok) throw new Error('Save failed');
+    currentData = newData;
+    renderStatus(newData);
+    statusEl.textContent = '✅ Saved successfully!';
+    statusEl.className = 'save-status success';
+  } catch (err) {
+    statusEl.textContent = '❌ Could not save. Check connection.';
+    statusEl.className = 'save-status error';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Save & Publish';
+}
+
+function renderStatus(data) {
+  const levels = COUNTIES.map(c => data[c.key]?.level || 'none');
+  const worstLevel = levels.includes('total')  ? 'total'
+                   : levels.includes('stage3') ? 'stage3'
+                   : levels.includes('stage2') ? 'stage2'
+                   : levels.includes('stage1') ? 'stage1' : 'none';
+  const worstMap = LEVEL_MAP[worstLevel];
+  setStatus(worstMap.pillType, worstMap.pillText);
+
+  const anyActive  = worstLevel !== 'none';
+  const activeCount = levels.filter(l => l !== 'none').length;
+
+  document.getElementById('content-area').innerHTML = `
+    ${anyActive ? `
+    <div style="background:#FAEEDA;border:1px solid rgba(186,117,23,0.3);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:13px;color:#633806;line-height:1.6;">
+      <strong>⚠️ ${activeCount} area${activeCount > 1 ? 's have' : ' has'} active fire restrictions.</strong>
+      Always check the official county/city website for the most current details before burning.
+    </div>` : ''}
+    <div class="legend" style="margin-bottom:1.2rem;">
+      <div class="legend-item"><div class="legend-dot" style="background:#3B6D11"></div>No restrictions</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#BA7517"></div>Stage/Level 1</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#D85A30"></div>Stage/Level 2</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#A32D2D"></div>Stage/Level 3 / Total ban</div>
+    </div>
+    <div class="county-grid">
+      ${COUNTIES.map(c => {
+        const d = data[c.key] || {};
+        const level = d.level || 'none';
+        const map = LEVEL_MAP[level];
+        return `
+          <div class="county-card">
+            <div class="county-card-accent ${map.accentClass}"></div>
+            <div class="county-card-inner">
+              <div class="county-name">${c.name}</div>
+              <div class="county-status ${map.statusClass}">${d.status || 'Unknown'}</div>
+              <div class="county-notes">${d.notes || '—'}</div>
+              <div class="county-meta">Updated ${d.updated || '—'}${d.updatedBy ? ' by ' + d.updatedBy : ''}</div>
+              ${c.link
+                ? `<div class="county-links"><a class="county-link" href="${c.link}" target="_blank">↗ ${c.linkLabel}</a></div>`
+                : `<div style="font-size:12px;color:var(--mist);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">No official page available yet</div>`}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function loadStatus() {
+  try {
+    const res = await fetch(API_BASE + '/latest', { headers: { 'X-Master-Key': MASTER_KEY } });
+    const json = await res.json();
+    currentData = json.record;
+    document.getElementById('last-fetch').textContent = 'Refreshed ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+    renderStatus(currentData);
+    const form = document.getElementById('admin-form');
+    if (form.classList.contains('visible')) populateForm(currentData);
+  } catch (err) {
+    setStatus('loading', 'Unable to load status');
+    document.getElementById('content-area').innerHTML = `
+      <div class="loading-state">
+        <strong>Could not load burn ban status.</strong><br>
+        Check your connection and try refreshing.<br><br>
+        <small style="color:#aaa">${err.message}</small>
+      </div>`;
+  }
+}
+
+loadStatus();
+setInterval(loadStatus, 5 * 60 * 1000);
+</script>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="bottom-nav-btn home" href="index.html">
+    <div class="bottom-nav-icon">🏠</div>
+    <span>Home</span>
+  </a>
+  <button class="bottom-nav-btn" onclick="window.location.reload()">
+    <div class="bottom-nav-icon">🔄</div>
+    <span>Refresh</span>
+  </button>
+  <a class="bottom-nav-btn" href="javascript:history.back()">
+    <div class="bottom-nav-icon">◀</div>
+    <span>Back</span>
+  </button>
+</div>
+
+
+<script>
+// Show bottom nav only when running as installed PWA
+(function() {
+  var isStandalone = window.navigator.standalone === true ||
+                     window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) {
+    document.body.classList.add('pwa-mode');
+    var nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.add('pwa-active');
+  }
+})();
+</script>
+</body>
+</html>
