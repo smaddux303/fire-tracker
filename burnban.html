@@ -472,23 +472,51 @@ function renderStatus(data) {
     </div>`;
 }
 
-async function loadStatus() {
+const BURNBAN_CACHE_KEY = 'wfd_burnban_cache';
+
+function loadCachedBurnBan() {
   try {
-    const res = await fetch(API_BASE + '/latest', { headers: { 'X-Master-Key': MASTER_KEY } });
+    const cached = localStorage.getItem(BURNBAN_CACHE_KEY);
+    if (cached) {
+      currentData = JSON.parse(cached);
+      renderStatus(currentData);
+      document.getElementById('last-fetch').textContent = 'Cached — refreshing…';
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+async function loadStatus() {
+  const hasCached = loadCachedBurnBan();
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(API_BASE + '/latest', {
+      headers: { 'X-Master-Key': MASTER_KEY },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
     const json = await res.json();
     currentData = json.record;
+    localStorage.setItem(BURNBAN_CACHE_KEY, JSON.stringify(currentData));
     document.getElementById('last-fetch').textContent = 'Refreshed ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
     renderStatus(currentData);
     const form = document.getElementById('admin-form');
     if (form.classList.contains('visible')) populateForm(currentData);
   } catch (err) {
-    setStatus('loading', 'Unable to load status');
-    document.getElementById('content-area').innerHTML = `
-      <div class="loading-state">
-        <strong>Could not load burn ban status.</strong><br>
-        Check your connection and try refreshing.<br><br>
-        <small style="color:#aaa">${err.message}</small>
-      </div>`;
+    if (!hasCached) {
+      setStatus('loading', 'Unable to load status');
+      document.getElementById('content-area').innerHTML = `
+        <div class="loading-state">
+          <strong>Could not load burn ban status.</strong><br>
+          Check your connection and try refreshing.<br><br>
+          <small style="color:#aaa">${err.message}</small>
+        </div>`;
+    } else {
+      document.getElementById('last-fetch').textContent = '⚠️ Using cached data — check connection';
+    }
   }
 }
 
