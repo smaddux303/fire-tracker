@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fire Danger Tracker — Westminster, CO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ash: #2C2C2A;
+    --ember: #D85A30;
+    --ember-deep: #4A1B0C;
+    --ember-glow: #F0997B;
+    --ember-pale: #FAECE7;
+    --warning: #BA7517;
+    --warning-bg: #FAEEDA;
+    --safe: #3B6D11;
+    --safe-bg: #EAF3DE;
+    --safe-text: #27500A;
+    --smoke: #5F5E5A;
+    --paper: #F9F6F1;
+    --white: #FFFFFF;
+    --border: rgba(44,44,42,0.12);
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ash);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--ash);
+    color: var(--white);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 2rem 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ember-glow);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+  }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 7vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    color: var(--white);
+  }
+  .header h1 span { color: var(--ember-glow); }
+  .header-sub {
+    margin-top: 0.6rem;
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 400;
+  }
+  .header-accent {
+    position: absolute;
+    right: -60px;
+    top: -60px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(216,90,48,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.55rem 1.1rem;
+    border-radius: 0 0 var(--radius) var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .status-pill.clear   { background: var(--safe-bg);    color: var(--safe-text); }
+  .status-pill.warning { background: var(--warning-bg); color: var(--warning); }
+  .status-pill.danger  { background: var(--ember-pale); color: var(--ember-deep); }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+  }
+  .clear   .status-dot { background: var(--safe); animation: none; }
+  .warning .status-dot { background: var(--warning); }
+  .danger  .status-dot { background: var(--ember); }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  /* MAIN */
+  .main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* ALERT CARD */
+  .alert-card {
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid transparent;
+  }
+  .alert-card.red-flag {
+    background: var(--ember-pale);
+    border-color: rgba(216,90,48,0.3);
+  }
+  .alert-card.fire-watch {
+    background: var(--warning-bg);
+    border-color: rgba(186,117,23,0.3);
+  }
+  .alert-card.clear-card {
+    background: var(--safe-bg);
+    border-color: rgba(59,109,17,0.3);
+  }
+  .alert-tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 0.6rem;
+  }
+  .red-flag   .alert-tag { background: var(--ember);   color: #fff; }
+  .fire-watch .alert-tag { background: var(--warning); color: #fff; }
+  .clear-card .alert-tag { background: var(--safe);    color: #fff; }
+
+  .alert-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .red-flag   .alert-title { color: var(--ember-deep); }
+  .fire-watch .alert-title { color: var(--warning); }
+  .clear-card .alert-title { color: var(--safe); }
+
+  .alert-meta {
+    font-size: 13px;
+    color: var(--smoke);
+    margin-bottom: 0.8rem;
+  }
+  .alert-desc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ash);
+  }
+
+  /* METRICS ROW */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .metric {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1rem 1.1rem;
+  }
+  .metric-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--smoke);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .metric-value {
+    font-size: 1.6rem;
+    font-family: 'Bebas Neue', sans-serif;
+    line-height: 1;
+    color: var(--ash);
+  }
+  .metric-unit {
+    font-size: 12px;
+    color: var(--smoke);
+    margin-top: 2px;
+  }
+  .metric.hot   .metric-value { color: var(--ember); }
+  .metric.windy .metric-value { color: var(--warning); }
+
+  /* ALERTS LIST */
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--smoke);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+  }
+  .alerts-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+  .alert-item {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1rem 1.1rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .alert-item:hover { border-color: var(--ember); }
+  .alert-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .alert-item-name {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .alert-item-badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .badge-red    { background: var(--ember-pale); color: var(--ember-deep); }
+  .badge-watch  { background: var(--warning-bg); color: var(--warning); }
+  .badge-info   { background: #E6F1FB; color: #0C447C; }
+  .alert-item-expires {
+    font-size: 12px;
+    color: var(--smoke);
+    margin-top: 4px;
+  }
+  .alert-item-area {
+    font-size: 12px;
+    color: var(--smoke);
+    margin-top: 2px;
+  }
+  .alert-item-body {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ash);
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .alert-item.expanded .alert-item-body { display: block; }
+  .expand-icon { color: var(--smoke); font-size: 18px; transition: transform 0.2s; flex-shrink: 0; }
+  .alert-item.expanded .expand-icon { transform: rotate(180deg); }
+
+  /* FOOTER */
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .footer-left { font-size: 12px; color: var(--smoke); }
+  .footer-left a { color: var(--ember); text-decoration: none; }
+  .footer-left a:hover { text-decoration: underline; }
+  .refresh-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--ash);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.5rem 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+  }
+  .refresh-btn:hover { background: var(--ember); }
+  .refresh-btn svg { width: 14px; height: 14px; }
+
+  /* LOADING / ERROR */
+  .loading-state, .error-state {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+    color: var(--smoke);
+    font-size: 14px;
+  }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--ember);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 0.8rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .no-alerts {
+    background: var(--safe-bg);
+    border: 1px solid rgba(59,109,17,0.25);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--safe-text);
+    margin-bottom: 1.5rem;
+  }
+  .no-alerts-icon { font-size: 24px; flex-shrink: 0; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(13,27,42,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    display: none;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 999;
+  }
+  .bottom-nav.pwa-active { display: flex; }
+  .bottom-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 4px 20px;
+    border-radius: 8px;
+    transition: color 0.15s;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+  .bottom-nav-btn:active { color: #F5C842; transform: scale(0.92); }
+  .bottom-nav-btn.home { color: #F5C842; }
+  .bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
+  /* Push page content above nav bar — only when PWA active */
+  body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-accent"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">🔥 Active Weather Alerts</div>
+    <h1>Fire <span>Danger</span><br>Tracker</h1>
+    <p class="header-sub">Westminster &amp; Denver Metro Area, Colorado</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Checking alerts…</span>
+  </div>
+</div>
+
+<main class="main">
+  <div id="metrics-row" class="metrics" style="display:none"></div>
+  <div id="primary-card"></div>
+  <div id="alerts-section" style="display:none">
+    <div class="section-label">All Active Alerts — Adams &amp; Jefferson Counties</div>
+    <div class="alerts-list" id="alerts-list"></div>
+  </div>
+  <div id="content-area">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      Fetching live alerts from National Weather Service…
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Data from <a href="https://www.weather.gov/bou/" target="_blank">NWS Boulder, CO</a> &bull;
+    <span id="last-updated">—</span>
+  </div>
+  <button class="refresh-btn" onclick="loadAlerts()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<script>
+const FIRE_ALERT_TYPES = [
+  'Red Flag Warning',
+  'Fire Weather Watch',
+  'Extreme Fire Danger',
+  'High Wind Warning',
+  'Wind Advisory',
+  'Excessive Heat Warning',
+  'Heat Advisory',
+  'Special Weather Statement'
+];
+
+const FIRE_KEYWORDS = ['fire', 'red flag', 'wind', 'heat', 'humidity', 'dry', 'critical'];
+
+function classifyAlert(event) {
+  const e = (event || '').toLowerCase();
+  if (e.includes('red flag')) return 'red-flag';
+  if (e.includes('fire weather watch') || e.includes('fire watch')) return 'fire-watch';
+  if (e.includes('extreme fire')) return 'red-flag';
+  if (e.includes('excessive heat') || e.includes('high wind')) return 'fire-watch';
+  return 'info';
+}
+
+function badgeClass(type) {
+  if (type === 'red-flag') return 'badge-red';
+  if (type === 'fire-watch') return 'badge-watch';
+  return 'badge-info';
+}
+
+function formatTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+}
+
+function timeUntil(iso) {
+  if (!iso) return '';
+  const diff = new Date(iso) - Date.now();
+  if (diff < 0) return 'Expired';
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (h > 24) return `${Math.floor(h/24)}d ${h%24}h remaining`;
+  return `${h}h ${m}m remaining`;
+}
+
+function isFireRelated(alert) {
+  const eventLower = (alert.properties.event || '').toLowerCase();
+  const descLower  = (alert.properties.description || '').toLowerCase();
+  for (const kw of FIRE_KEYWORDS) {
+    if (eventLower.includes(kw) || descLower.includes(kw)) return true;
+  }
+  for (const t of FIRE_ALERT_TYPES) {
+    if (eventLower.includes(t.toLowerCase())) return true;
+  }
+  return false;
+}
+
+function setStatus(type, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + type;
+  document.getElementById('status-text').textContent = text;
+}
+
+async function loadAlerts() {
+  document.getElementById('content-area').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      Fetching live alerts from National Weather Service…
+    </div>`;
+  document.getElementById('primary-card').innerHTML = '';
+  document.getElementById('alerts-list').innerHTML = '';
+  document.getElementById('alerts-section').style.display = 'none';
+  document.getElementById('metrics-row').style.display = 'none';
+  setStatus('', 'Checking alerts…');
+
+  try {
+    const zones = [
+      'https://api.weather.gov/alerts/active?zone=COZ040',
+      'https://api.weather.gov/alerts/active?zone=COZ038',
+      'https://api.weather.gov/alerts/active?zone=COC001',
+      'https://api.weather.gov/alerts/active?zone=COC059'
+    ];
+
+    const responses = await Promise.all(zones.map(u => fetch(u, { headers: { 'User-Agent': 'FireDangerTracker/1.0' } })));
+    const jsons = await Promise.all(responses.map(r => r.json()));
+
+    const seen = new Set();
+    let allAlerts = [];
+    for (const j of jsons) {
+      for (const f of (j.features || [])) {
+        if (!seen.has(f.id)) { seen.add(f.id); allAlerts.push(f); }
+      }
+    }
+
+    const fireAlerts = allAlerts.filter(isFireRelated);
+    const otherAlerts = allAlerts.filter(a => !isFireRelated(a));
+
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit', timeZoneName:'short'});
+
+    if (fireAlerts.length === 0) {
+      setStatus('clear', 'No fire weather alerts active');
+      document.getElementById('content-area').innerHTML = '';
+      document.getElementById('primary-card').innerHTML = `
+        <div class="no-alerts">
+          <div class="no-alerts-icon">✅</div>
+          <div>
+            <strong>No active fire weather alerts</strong> for Adams &amp; Jefferson Counties.<br>
+            <span style="font-size:12px;opacity:.8;">Conditions are currently within normal range. Check back during periods of high heat, low humidity, or strong winds.</span>
+          </div>
+        </div>`;
+    } else {
+      const topAlert = fireAlerts[0];
+      const topType  = classifyAlert(topAlert.properties.event);
+
+      if (topType === 'red-flag') setStatus('danger', 'Red Flag Warning — Take precautions');
+      else setStatus('warning', 'Fire Weather Alert Active');
+
+      document.getElementById('content-area').innerHTML = '';
+
+      const desc = (topAlert.properties.description || '').replace(/\n\n+/g, '\n').replace(/\n/g, '<br>');
+      document.getElementById('primary-card').innerHTML = `
+        <div class="alert-card ${topType}">
+          <div class="alert-tag">${topAlert.properties.event}</div>
+          <div class="alert-title">${topAlert.properties.headline || topAlert.properties.event}</div>
+          <div class="alert-meta">
+            Expires: ${formatTime(topAlert.properties.expires)} &bull; ${timeUntil(topAlert.properties.expires)}
+          </div>
+          <div class="alert-desc">${desc.substring(0, 600)}${desc.length > 600 ? '…' : ''}</div>
+        </div>`;
+    }
+
+    const displayAlerts = [...fireAlerts];
+    if (displayAlerts.length > 0) {
+      document.getElementById('alerts-section').style.display = '';
+      const list = document.getElementById('alerts-list');
+      list.innerHTML = '';
+      displayAlerts.forEach((a, i) => {
+        const type  = classifyAlert(a.properties.event);
+        const badge = badgeClass(type);
+        const desc  = (a.properties.description || '').trim().replace(/\n/g, ' ');
+        const short = desc.length > 250 ? desc.substring(0, 250) + '…' : desc;
+        const area  = a.properties.areaDesc || '';
+
+        const item = document.createElement('div');
+        item.className = 'alert-item';
+        item.innerHTML = `
+          <div class="alert-item-top">
+            <div class="alert-item-name">${a.properties.event}</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="alert-item-badge ${badge}">${type === 'red-flag' ? 'Red Flag' : type === 'fire-watch' ? 'Watch' : 'Advisory'}</span>
+              <svg class="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+          <div class="alert-item-expires">Expires ${formatTime(a.properties.expires)} &bull; ${timeUntil(a.properties.expires)}</div>
+          ${area ? `<div class="alert-item-area">${area}</div>` : ''}
+          <div class="alert-item-body">${short}</div>`;
+        item.querySelector('.alert-item-top').addEventListener('click', () => item.classList.toggle('expanded'));
+        list.appendChild(item);
+      });
+    }
+
+    const metricsEl = document.getElementById('metrics-row');
+    const fireCount = fireAlerts.length;
+    const rfwCount  = fireAlerts.filter(a => a.properties.event.toLowerCase().includes('red flag')).length;
+
+    metricsEl.style.display = '';
+    metricsEl.innerHTML = `
+      <div class="metric ${rfwCount > 0 ? 'hot' : ''}">
+        <div class="metric-label">Red Flag Warnings</div>
+        <div class="metric-value">${rfwCount}</div>
+        <div class="metric-unit">Active now</div>
+      </div>
+      <div class="metric ${fireCount > 0 ? 'windy' : ''}">
+        <div class="metric-label">Total Fire Alerts</div>
+        <div class="metric-value">${fireCount}</div>
+        <div class="metric-unit">All types</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Other Alerts</div>
+        <div class="metric-value">${otherAlerts.length}</div>
+        <div class="metric-unit">In area</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Area</div>
+        <div class="metric-value" style="font-size:1.1rem;padding-top:4px">Adams &amp;<br>Jefferson</div>
+        <div class="metric-unit">Counties, CO</div>
+      </div>`;
+
+  } catch (err) {
+    setStatus('', 'Unable to load alerts');
+    document.getElementById('content-area').innerHTML = `
+      <div class="error-state">
+        <strong>Could not reach the National Weather Service API.</strong><br>
+        Check your network connection and try refreshing. If this page is hosted on SharePoint, ensure outbound requests to <code>api.weather.gov</code> are permitted.
+        <br><br><small>${err.message}</small>
+      </div>`;
+  }
+}
+
+loadAlerts();
+setInterval(loadAlerts, 10 * 60 * 1000);
+</script>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="bottom-nav-btn home" href="index.html">
+    <div class="bottom-nav-icon">🏠</div>
+    <span>Home</span>
+  </a>
+  <button class="bottom-nav-btn" onclick="window.location.reload()">
+    <div class="bottom-nav-icon">🔄</div>
+    <span>Refresh</span>
+  </button>
+  <a class="bottom-nav-btn" href="javascript:history.back()">
+    <div class="bottom-nav-icon">◀</div>
+    <span>Back</span>
+  </button>
+</div>
+
+
+<script>
+// Show bottom nav only when running as installed PWA
+(function() {
+  var isStandalone = window.navigator.standalone === true ||
+                     window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) {
+    document.body.classList.add('pwa-mode');
+    var nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.add('pwa-active');
+  }
+})();
+</script>
+</body>
+</html>
