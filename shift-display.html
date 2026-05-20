@@ -288,7 +288,8 @@ const API_BASE   = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 // B shift started May 19 2025 at 0700 — 48/96 rotation: B→A→C
 const SHIFT_ANCHOR = new Date('2026-05-19T13:00:00Z'); // 0700 MDT = 1300 UTC
 const SHIFT_NAMES  = ['B','A','C'];
-const SHIFT_COLORS = { A:'#FFFFFF', B:'#E24B4A', C:'#4CAF7D' };
+const SHIFT_COLORS      = { A:'#FFFFFF', B:'#E24B4A', C:'#4CAF7D' }; // for dark header
+const SHIFT_COLORS_CARD = { A:'#2C2C2A', B:'#E24B4A', C:'#4CAF7D' }; // for white cards
 const CYCLE_MS     = 48 * 60 * 60 * 1000;
 const FULL_MS      = 144 * 60 * 60 * 1000;
 
@@ -398,14 +399,14 @@ function renderStations(apparatusData, stationNotes) {
   document.getElementById('header-shift').textContent  = curShift + ' Shift';
   document.getElementById('header-shift').style.color  = SHIFT_COLORS[curShift];
   document.getElementById('current-shift-label').textContent = curShift + ' Shift';
-  document.getElementById('current-shift-label').style.color = SHIFT_COLORS[curShift];
+  document.getElementById('current-shift-label').style.color = SHIFT_COLORS_CARD[curShift];
   document.getElementById('current-shift-date').textContent  = formatShiftDate(curStart) + ' – ' + formatShiftDate(new Date(nxtStart - 1));
   document.getElementById('current-shift-end').textContent   = 'Until ' + formatShiftDate(nxtStart) + ' at 0700';
   document.getElementById('next-shift-label').textContent    = nxtShift + ' Shift';
-  document.getElementById('next-shift-label').style.color    = SHIFT_COLORS[nxtShift];
+  document.getElementById('next-shift-label').style.color    = SHIFT_COLORS_CARD[nxtShift];
   document.getElementById('next-shift-date').textContent     = formatShiftDate(nxtStart);
   document.getElementById('after-shift-label').textContent   = aftShift + ' Shift';
-  document.getElementById('after-shift-label').style.color   = SHIFT_COLORS[aftShift];
+  document.getElementById('after-shift-label').style.color   = SHIFT_COLORS_CARD[aftShift];
   document.getElementById('after-shift-date').textContent    = formatShiftDate(aftStart);
 
   document.getElementById('status-text').textContent = `${curShift} Shift on duty — ${formatShiftDate(curStart)}`;
