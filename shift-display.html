@@ -488,19 +488,53 @@ function buildAdminForm(apparatusData, stationNotes) {
 }
 
 // ── JSONBIN ───────────────────────────────────────
-async function loadStatus() {
+const CACHE_KEY = 'wfd_shift_cache';
+
+function loadCached() {
   try {
-    const res  = await fetch(API_BASE + '/latest', { headers: { 'X-Master-Key': MASTER_KEY } });
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const data = JSON.parse(cached);
+      renderStations(data.apparatus || getDefaultApparatusData(), data.stationNotes || {});
+      document.getElementById('last-updated').textContent = 'Cached — refreshing…';
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+async function loadStatus() {
+  // Show cached data instantly while fetching fresh
+  const hasCached = loadCached();
+  if (!hasCached) {
+    document.getElementById('content-area').innerHTML = `<div class="loading-state"><div class="spinner"></div>Loading shift and apparatus status…</div>`;
+  }
+
+  try {
+    // 5 second timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res  = await fetch(API_BASE + '/latest', {
+      headers: { 'X-Master-Key': MASTER_KEY },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
     const json = await res.json();
     const data = json.record;
     const apparatusData = data.apparatus || getDefaultApparatusData();
     const stationNotes  = data.stationNotes || {};
+    // Save to cache for next time
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ apparatus: apparatusData, stationNotes }));
     document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});
     renderStations(apparatusData, stationNotes);
     const form = document.getElementById('admin-form');
     if (form.classList.contains('visible')) buildAdminForm(apparatusData, stationNotes);
   } catch(e) {
-    document.getElementById('content-area').innerHTML = `<div class="loading-state">⚠️ Could not load status. Check connection and refresh.</div>`;
+    if (hasCached) {
+      document.getElementById('last-updated').textContent = '⚠️ Using cached data — check connection';
+    } else {
+      document.getElementById('content-area').innerHTML = `<div class="loading-state">⚠️ Could not load status. Check connection and refresh.</div>`;
+    }
   }
 }
 
