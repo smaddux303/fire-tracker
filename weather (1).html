@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Severe Weather Tracker — Westminster, CO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ash: #2C2C2A;
+    --slate: #444441;
+    --smoke: #5F5E5A;
+    --mist: #B4B2A9;
+    --paper: #F9F6F1;
+    --white: #FFFFFF;
+    --border: rgba(44,44,42,0.12);
+    --radius: 10px;
+
+    --tornado:   #A32D2D; --tornado-bg:   #FCEBEB; --tornado-mid: #E24B4A;
+    --severe:    #854F0B; --severe-bg:    #FAEEDA; --severe-mid:  #BA7517;
+    --flood:     #185FA5; --flood-bg:     #E6F1FB; --flood-mid:   #378ADD;
+    --winter:    #0F6E56; --winter-bg:    #E1F5EE; --winter-mid:  #1D9E75;
+    --wind:      #993C1D; --wind-bg:      #FAECE7; --wind-mid:    #D85A30;
+    --watch:     #633806; --watch-bg:     #FAEEDA; --watch-mid:   #EF9F27;
+    --advisory:  #3B6D11; --advisory-bg:  #EAF3DE; --advisory-mid:#639922;
+    --default:   #3C3489; --default-bg:   #EEEDFE; --default-mid: #7F77DD;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ash);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: #1a1f2e;
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 2rem 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #85B7EB;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+  }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 7vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    color: var(--white);
+  }
+  .header h1 span { color: #85B7EB; }
+  .header-sub {
+    margin-top: 0.6rem;
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+  }
+  .header-glow {
+    position: absolute;
+    right: -80px; top: -80px;
+    width: 350px; height: 350px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(55,138,221,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .status-bar { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.55rem 1.1rem;
+    border-radius: 0 0 var(--radius) var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .status-pill.clear   { background: #EAF3DE; color: #27500A; }
+  .status-pill.warning { background: #FAEEDA; color: #633806; }
+  .status-pill.danger  { background: #FCEBEB; color: #791F1F; }
+  .status-pill.loading { background: #E6F1FB; color: #0C447C; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .clear   .status-dot { background: #3B6D11; }
+  .warning .status-dot { background: #BA7517; animation: pulse 2s infinite; }
+  .danger  .status-dot { background: #E24B4A; animation: pulse 1.5s infinite; }
+  .loading .status-dot { background: #378ADD; animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.4; transform:scale(1.4); }
+  }
+
+  .main { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .metric {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1rem 1.1rem;
+  }
+  .metric-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--smoke);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .metric-value {
+    font-size: 1.8rem;
+    font-family: 'Bebas Neue', sans-serif;
+    line-height: 1;
+    color: var(--ash);
+  }
+  .metric-unit { font-size: 12px; color: var(--smoke); margin-top: 2px; }
+  .metric.active .metric-value { color: #E24B4A; }
+  .metric.watch-count .metric-value { color: #BA7517; }
+
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--smoke);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+  }
+
+  .alerts-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+
+  .alert-item {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .alert-item:hover { border-color: var(--mist); }
+
+  .alert-item-accent {
+    height: 4px;
+    width: 100%;
+  }
+  .alert-item-inner { padding: 1rem 1.1rem; }
+  .alert-item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .alert-item-left { flex: 1; min-width: 0; }
+  .alert-item-name { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+  .alert-item-area { font-size: 12px; color: var(--smoke); }
+  .alert-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .chevron { color: var(--mist); font-size: 16px; transition: transform 0.2s; line-height: 1; }
+  .alert-item.expanded .chevron { transform: rotate(180deg); }
+
+  .alert-item-expires {
+    font-size: 12px;
+    color: var(--smoke);
+    margin-top: 6px;
+  }
+  .alert-item-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ash);
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border);
+    display: none;
+    white-space: pre-wrap;
+  }
+  .alert-item.expanded .alert-item-body { display: block; }
+
+  .no-alerts {
+    background: #EAF3DE;
+    border: 1px solid rgba(59,109,17,0.25);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+    color: #27500A;
+    margin-bottom: 1.5rem;
+  }
+  .no-alerts-icon { font-size: 2rem; flex-shrink: 0; }
+
+  .loading-state, .error-state {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+    color: var(--smoke);
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+  }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: #378ADD;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 0.8rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--smoke);
+  }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  .footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .footer-left { font-size: 12px; color: var(--smoke); }
+  .footer-left a { color: #378ADD; text-decoration: none; }
+  .footer-left a:hover { text-decoration: underline; }
+  .refresh-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    background: #1a1f2e;
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.5rem 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+  }
+  .refresh-btn:hover { background: #378ADD; }
+  .refresh-btn svg { width: 14px; height: 14px; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(13,27,42,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    display: none;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 999;
+  }
+  .bottom-nav.pwa-active { display: flex; }
+  .bottom-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-decoration: none;
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 4px 20px;
+    border-radius: 8px;
+    transition: color 0.15s;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+  .bottom-nav-btn:active { color: #F5C842; transform: scale(0.92); }
+  .bottom-nav-btn.home { color: #F5C842; }
+  .bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
+  /* Push page content above nav bar — only when PWA active */
+  body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-glow"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">⛈ Active Weather Alerts</div>
+    <h1>Severe <span>Weather</span><br>Tracker</h1>
+    <p class="header-sub">Westminster &amp; Denver Metro Area, Colorado</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill loading" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Checking alerts…</span>
+  </div>
+</div>
+
+<main class="main">
+  <div id="metrics-row" class="metrics" style="display:none"></div>
+  <div id="content-area">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      Fetching live alerts from National Weather Service…
+    </div>
+  </div>
+  <div id="alerts-section" style="display:none">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8rem;">
+      <div class="section-label" style="margin-bottom:0">All Active Alerts — Adams &amp; Jefferson Counties</div>
+      <div style="font-size:12px; color:var(--smoke)" id="alert-count"></div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="alerts-list" id="alerts-list"></div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Data from <a href="https://www.weather.gov/bou/" target="_blank">NWS Boulder, CO</a> &bull;
+    <span id="last-updated">—</span>
+  </div>
+  <button class="refresh-btn" onclick="loadAlerts()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<script>
+const ALERT_STYLES = {
+  tornado:  { keywords: ['tornado'],                       color: '#E24B4A', bg: '#FCEBEB', textColor: '#791F1F', label: 'Tornado'   },
+  severe:   { keywords: ['severe thunderstorm'],           color: '#BA7517', bg: '#FAEEDA', textColor: '#633806', label: 'Severe T-Storm' },
+  flood:    { keywords: ['flood', 'flash flood'],          color: '#378ADD', bg: '#E6F1FB', textColor: '#0C447C', label: 'Flood'     },
+  winter:   { keywords: ['blizzard','winter storm','winter weather','ice storm','freeze','frost','snow'], color: '#1D9E75', bg: '#E1F5EE', textColor: '#085041', label: 'Winter'   },
+  wind:     { keywords: ['high wind','wind advisory','wind warning'], color: '#D85A30', bg: '#FAECE7', textColor: '#4A1B0C', label: 'Wind'      },
+  heat:     { keywords: ['excessive heat','heat advisory','extreme heat'], color: '#E24B4A', bg: '#FCEBEB', textColor: '#791F1F', label: 'Heat'  },
+  hail:     { keywords: ['hail'],                          color: '#7F77DD', bg: '#EEEDFE', textColor: '#26215C', label: 'Hail'      },
+  fire:     { keywords: ['red flag','fire weather','fire danger'], color: '#D85A30', bg: '#FAECE7', textColor: '#4A1B0C', label: 'Fire Weather' },
+  lightning:{ keywords: ['lightning'],                     color: '#BA7517', bg: '#FAEEDA', textColor: '#633806', label: 'Lightning' },
+  fog:      { keywords: ['dense fog','fog advisory'],      color: '#888780', bg: '#F1EFE8', textColor: '#2C2C2A', label: 'Fog'       },
+};
+
+function getAlertStyle(event) {
+  const e = (event || '').toLowerCase();
+  for (const [, style] of Object.entries(ALERT_STYLES)) {
+    for (const kw of style.keywords) {
+      if (e.includes(kw)) return style;
+    }
+  }
+  return { color: '#7F77DD', bg: '#EEEDFE', textColor: '#26215C', label: 'Alert' };
+}
+
+function getSeverityRank(event) {
+  const e = (event || '').toLowerCase();
+  if (e.includes('tornado warning') || e.includes('flash flood emergency')) return 0;
+  if (e.includes('warning')) return 1;
+  if (e.includes('watch'))   return 2;
+  if (e.includes('advisory'))return 3;
+  return 4;
+}
+
+function formatTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+}
+
+function timeUntil(iso) {
+  if (!iso) return '';
+  const diff = new Date(iso) - Date.now();
+  if (diff < 0) return 'Expired';
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (h > 48) return Math.floor(h/24) + 'd remaining';
+  if (h > 0)  return h + 'h ' + m + 'm remaining';
+  return m + 'm remaining';
+}
+
+function setStatus(type, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + type;
+  document.getElementById('status-text').textContent = text;
+}
+
+async function loadAlerts() {
+  document.getElementById('content-area').innerHTML = `<div class="loading-state"><div class="spinner"></div>Fetching live alerts from National Weather Service…</div>`;
+  document.getElementById('alerts-section').style.display = 'none';
+  document.getElementById('metrics-row').style.display = 'none';
+  setStatus('loading', 'Checking alerts…');
+
+  try {
+    const zones = [
+      'https://api.weather.gov/alerts/active?zone=COZ040',
+      'https://api.weather.gov/alerts/active?zone=COZ038',
+      'https://api.weather.gov/alerts/active?zone=COC001',
+      'https://api.weather.gov/alerts/active?zone=COC059'
+    ];
+
+    const responses = await Promise.all(zones.map(u => fetch(u, { headers: { 'User-Agent': 'SevereWeatherTracker/1.0' } })));
+    const jsons = await Promise.all(responses.map(r => r.json()));
+
+    const seen = new Set();
+    let allAlerts = [];
+    for (const j of jsons) {
+      for (const f of (j.features || [])) {
+        if (!seen.has(f.id)) { seen.add(f.id); allAlerts.push(f); }
+      }
+    }
+
+    allAlerts.sort((a, b) => getSeverityRank(a.properties.event) - getSeverityRank(b.properties.event));
+
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+
+    const warnings  = allAlerts.filter(a => (a.properties.event||'').toLowerCase().includes('warning'));
+    const watches   = allAlerts.filter(a => (a.properties.event||'').toLowerCase().includes('watch'));
+    const advisories= allAlerts.filter(a => !warnings.includes(a) && !watches.includes(a));
+
+    const metricsEl = document.getElementById('metrics-row');
+    metricsEl.style.display = '';
+    metricsEl.innerHTML = `
+      <div class="metric ${warnings.length > 0 ? 'active' : ''}">
+        <div class="metric-label">Warnings</div>
+        <div class="metric-value">${warnings.length}</div>
+        <div class="metric-unit">Active now</div>
+      </div>
+      <div class="metric ${watches.length > 0 ? 'watch-count' : ''}">
+        <div class="metric-label">Watches</div>
+        <div class="metric-value">${watches.length}</div>
+        <div class="metric-unit">Active now</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Advisories</div>
+        <div class="metric-value">${advisories.length}</div>
+        <div class="metric-unit">Active now</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total Alerts</div>
+        <div class="metric-value">${allAlerts.length}</div>
+        <div class="metric-unit">All types</div>
+      </div>`;
+
+    document.getElementById('content-area').innerHTML = '';
+
+    if (allAlerts.length === 0) {
+      setStatus('clear', 'No active weather alerts');
+      document.getElementById('content-area').innerHTML = `
+        <div class="no-alerts">
+          <div class="no-alerts-icon">✅</div>
+          <div>
+            <strong>No active weather alerts</strong> for Adams &amp; Jefferson Counties.<br>
+            <span style="font-size:12px;opacity:.8;">Conditions are currently calm. This page auto-refreshes every 10 minutes.</span>
+          </div>
+        </div>`;
+    } else {
+      if (warnings.length > 0) setStatus('danger', warnings.length + ' active warning' + (warnings.length > 1 ? 's' : '') + ' — Take action');
+      else if (watches.length > 0) setStatus('warning', watches.length + ' active watch' + (watches.length > 1 ? 'es' : '') + ' — Stay prepared');
+      else setStatus('warning', allAlerts.length + ' active advisor' + (allAlerts.length > 1 ? 'ies' : 'y'));
+
+      document.getElementById('alerts-section').style.display = '';
+      document.getElementById('alert-count').textContent = allAlerts.length + ' alert' + (allAlerts.length !== 1 ? 's' : '');
+
+      const typesPresent = [...new Set(allAlerts.map(a => getAlertStyle(a.properties.event).label))];
+      const legend = document.getElementById('legend');
+      legend.innerHTML = typesPresent.map(label => {
+        const style = Object.values(ALERT_STYLES).find(s => s.label === label) || { color: '#7F77DD' };
+        return `<div class="legend-item"><div class="legend-dot" style="background:${style.color}"></div>${label}</div>`;
+      }).join('');
+
+      const list = document.getElementById('alerts-list');
+      list.innerHTML = '';
+      allAlerts.forEach(a => {
+        const style = getAlertStyle(a.properties.event);
+        const sevLabel = (a.properties.event||'').toLowerCase().includes('warning') ? 'Warning'
+                       : (a.properties.event||'').toLowerCase().includes('watch') ? 'Watch' : 'Advisory';
+        const desc = (a.properties.description || '').trim();
+        const short = desc.length > 400 ? desc.substring(0, 400) + '…' : desc;
+        const area  = (a.properties.areaDesc || '').split(';').slice(0, 3).join('; ');
+
+        const item = document.createElement('div');
+        item.className = 'alert-item';
+        item.innerHTML = `
+          <div class="alert-item-accent" style="background:${style.color}"></div>
+          <div class="alert-item-inner">
+            <div class="alert-item-top">
+              <div class="alert-item-left">
+                <div class="alert-item-name" style="color:${style.textColor}">${a.properties.event}</div>
+                ${area ? `<div class="alert-item-area">${area}</div>` : ''}
+              </div>
+              <div class="alert-item-right">
+                <span class="badge" style="background:${style.bg};color:${style.textColor}">${sevLabel}</span>
+                <span class="chevron">▾</span>
+              </div>
+            </div>
+            <div class="alert-item-expires">Expires ${formatTime(a.properties.expires)} &bull; ${timeUntil(a.properties.expires)}</div>
+            <div class="alert-item-body">${short}</div>
+          </div>`;
+        item.querySelector('.alert-item-top').addEventListener('click', () => item.classList.toggle('expanded'));
+        list.appendChild(item);
+      });
+    }
+
+  } catch (err) {
+    setStatus('loading', 'Unable to load alerts');
+    document.getElementById('content-area').innerHTML = `
+      <div class="error-state">
+        <strong>Could not reach the National Weather Service API.</strong><br>
+        Check your network connection and try refreshing.<br><br>
+        <small style="color:#888">${err.message}</small>
+      </div>`;
+  }
+}
+
+loadAlerts();
+setInterval(loadAlerts, 10 * 60 * 1000);
+</script>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="bottom-nav-btn home" href="index.html">
+    <div class="bottom-nav-icon">🏠</div>
+    <span>Home</span>
+  </a>
+  <button class="bottom-nav-btn" onclick="window.location.reload()">
+    <div class="bottom-nav-icon">🔄</div>
+    <span>Refresh</span>
+  </button>
+  <a class="bottom-nav-btn" href="javascript:history.back()">
+    <div class="bottom-nav-icon">◀</div>
+    <span>Back</span>
+  </button>
+</div>
+
+
+<script>
+// Show bottom nav only when running as installed PWA
+(function() {
+  var isStandalone = window.navigator.standalone === true ||
+                     window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) {
+    document.body.classList.add('pwa-mode');
+    var nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.add('pwa-active');
+  }
+})();
+</script>
+</body>
+</html>
