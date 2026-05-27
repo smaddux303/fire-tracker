@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Air Quality — Westminster FD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
+  --paper: #F9F6F1; --white: #FFFFFF; --border: rgba(44,44,42,0.12); --radius: 10px;
+  --fire: #D85A30; --fire-deep: #4A1B0C; --fire-pale: #FAECE7;
+
+  /* AQI color palette */
+  --aqi-good:       #00C853;
+  --aqi-moderate:   #FFD600;
+  --aqi-usg:        #FF6D00;
+  --aqi-unhealthy:  #D50000;
+  --aqi-very:       #7B1FA2;
+  --aqi-hazardous:  #4E0000;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ash); min-height: 100vh; }
+
+/* ── HEADER ── */
+.header { background: #0D1B2A; color: var(--white); position: relative; overflow: hidden; }
+.header-inner { max-width: 960px; margin: 0 auto; padding: 2rem 2rem 1.5rem; position: relative; z-index: 1; }
+.header-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #62C6F2; margin-bottom: 0.4rem; font-weight: 500; }
+.header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 7vw, 4.5rem); line-height: 0.95; color: var(--white); }
+.header h1 span { color: #62C6F2; }
+.header-sub { margin-top: 0.6rem; font-size: 14px; color: rgba(255,255,255,0.5); }
+.header-glow { position: absolute; right: -80px; top: -80px; width: 350px; height: 350px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(98,198,242,0.12) 0%, transparent 70%); pointer-events: none; }
+
+/* ── STATUS PILL ── */
+.status-bar { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
+.status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 0.55rem 1.1rem;
+  border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.03em; text-transform: uppercase; }
+.status-pill.loading { background: #FAEEDA; color: #633806; }
+.status-pill.good    { background: #E8F5E9; color: #1B5E20; }
+.status-pill.moderate { background: #FFFDE7; color: #5D4037; }
+.status-pill.usg     { background: #FFF3E0; color: #7E2C00; }
+.status-pill.unhealthy { background: #FFEBEE; color: #7f0000; }
+.status-pill.very    { background: #F3E5F5; color: #4A0072; }
+.status-pill.hazardous { background: #4E0000; color: #ffccbc; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
+.status-pill.loading .status-dot { animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.4);} }
+
+/* ── MAIN ── */
+.main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+/* ── BIG AQI CARD ── */
+.aqi-hero { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  overflow: hidden; margin-bottom: 1.5rem; }
+.aqi-hero-top { padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.aqi-left {}
+.aqi-location { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 4px; }
+.aqi-number { font-family: 'Bebas Neue', sans-serif; font-size: 6rem; line-height: 1; }
+.aqi-label { font-size: 14px; font-weight: 600; margin-top: 2px; }
+.aqi-right { text-align: right; }
+.aqi-pollutant { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); margin-bottom: 4px; }
+.aqi-pollutant-value { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--ash); }
+.aqi-scale { padding: 0 1.5rem 1.5rem; }
+.aqi-scale-track { height: 10px; border-radius: 5px; background: linear-gradient(to right,
+  #00C853 0%, #00C853 16.6%,
+  #FFD600 16.6%, #FFD600 33.2%,
+  #FF6D00 33.2%, #FF6D00 49.8%,
+  #D50000 49.8%, #D50000 66.4%,
+  #7B1FA2 66.4%, #7B1FA2 83%,
+  #4E0000 83%, #4E0000 100%
+); position: relative; margin-bottom: 6px; }
+.aqi-scale-marker { position: absolute; top: 50%; transform: translate(-50%,-50%);
+  width: 16px; height: 16px; background: var(--white); border: 3px solid var(--ash);
+  border-radius: 50%; transition: left 0.6s ease; }
+.aqi-scale-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--smoke); }
+
+/* ── METRICS GRID ── */
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.metric { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 0.9rem 1rem; }
+.metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); font-weight: 500; margin-bottom: 4px; }
+.metric-value { font-size: 1.6rem; font-family: 'Bebas Neue', sans-serif; line-height: 1; color: var(--ash); }
+.metric-unit { font-size: 11px; color: var(--smoke); margin-top: 2px; }
+
+/* ── NEARBY STATIONS ── */
+.section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 0.8rem; }
+.station-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+.station-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  overflow: hidden; display: flex; align-items: stretch; }
+.station-accent { width: 6px; flex-shrink: 0; }
+.station-inner { padding: 0.9rem 1rem; flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.station-name { font-weight: 600; font-size: 14px; color: var(--ash); }
+.station-distance { font-size: 12px; color: var(--smoke); margin-top: 2px; }
+.station-aqi-badge { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1; }
+.station-category { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: right; }
+
+/* ── HEALTH GUIDANCE ── */
+.guidance-card { border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 1.5rem; }
+.guidance-header { padding: 0.9rem 1.1rem; font-weight: 700; font-size: 14px; color: var(--white); }
+.guidance-body { background: var(--white); padding: 1rem 1.1rem; font-size: 13px; line-height: 1.7; color: var(--ash); }
+.guidance-body strong { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--smoke); }
+.guidance-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.guidance-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 1px; }
+.guidance-text {}
+
+/* ── WILDFIRE SMOKE BANNER ── */
+.smoke-banner { background: var(--fire-pale); border: 1px solid rgba(216,90,48,0.3); border-radius: var(--radius);
+  padding: 0.9rem 1.1rem; font-size: 13px; color: var(--fire-deep); margin-bottom: 1.5rem; display: none; line-height: 1.6; }
+.smoke-banner.visible { display: block; }
+.smoke-banner-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+
+/* ── LOADING / ERROR ── */
+.loading-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 2rem; text-align: center; color: var(--smoke); font-size: 14px; margin-bottom: 1.5rem; }
+.spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: #62C6F2;
+  border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.8rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── FOOTER ── */
+.footer { max-width: 960px; margin: 0 auto; padding: 0 2rem 2rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.footer-left { font-size: 12px; color: var(--smoke); }
+.footer-left a { color: #0D7ABF; text-decoration: none; }
+.footer-left a:hover { text-decoration: underline; }
+.refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  background: #0D1B2A; color: var(--white); border: none; border-radius: var(--radius);
+  padding: 0.5rem 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+.refresh-btn:hover { background: #62C6F2; color: #0D1B2A; }
+.refresh-btn svg { width: 14px; height: 14px; }
+
+/* ── INFO NOTE ── */
+.info-note { background: #E3F2FD; border: 1px solid rgba(13,122,191,0.25); border-radius: var(--radius);
+  padding: 0.9rem 1.1rem; font-size: 12px; color: #0D47A1; line-height: 1.5; margin-bottom: 1.5rem; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(13,27,42,0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  display: none; align-items: center; justify-content: space-around; z-index: 999;
+}
+.bottom-nav.pwa-active { display: flex; }
+.bottom-nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  text-decoration: none; color: rgba(255,255,255,0.6);
+  font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.04em; padding: 4px 20px; border-radius: 8px;
+  transition: color 0.15s; cursor: pointer; background: none; border: none;
+}
+.bottom-nav-btn:active { color: #62C6F2; transform: scale(0.92); }
+.bottom-nav-btn.home { color: #62C6F2; }
+.bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
+body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-glow"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">🌫️ Situational Awareness</div>
+    <h1>Air <span>Quality</span></h1>
+    <p class="header-sub">Westminster & Front Range — AirNow Live Data</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill loading" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Loading air quality data…</span>
+  </div>
+</div>
+
+<main class="main" id="main-content">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    Fetching air quality data from AirNow…
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Data from <a href="https://www.airnow.gov" target="_blank">AirNow</a> /
+    <a href="https://www.epa.gov" target="_blank">US EPA</a> &bull;
+    <span id="last-updated">—</span>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="bottom-nav-btn home" href="index.html">
+    <div class="bottom-nav-icon">🏠</div>
+    <span>Home</span>
+  </a>
+  <button class="bottom-nav-btn" onclick="window.location.reload()">
+    <div class="bottom-nav-icon">🔄</div>
+    <span>Refresh</span>
+  </button>
+  <a class="bottom-nav-btn" href="javascript:history.back()">
+    <div class="bottom-nav-icon">◀</div>
+    <span>Back</span>
+  </a>
+</div>
+
+<script>
+// Westminster, CO coordinates
+const LAT = 39.8367;
+const LON = -105.0372;
+const ZIP = '80031';
+
+// ── AQI HELPERS ──
+const AQI_LEVELS = [
+  { max: 50,  label: 'Good',                  cls: 'good',      color: '#00C853', bg: '#E8F5E9', text: '#1B5E20',
+    general: 'Air quality is satisfactory. No precautions needed for the general public.',
+    sensitive: 'No special precautions for sensitive groups.',
+    ops: 'Normal operations. No restrictions on outdoor training or rehab.' },
+  { max: 100, label: 'Moderate',               cls: 'moderate',  color: '#FFD600', bg: '#FFFDE7', text: '#5D4037',
+    general: 'Acceptable air quality; some pollutants may affect unusually sensitive individuals.',
+    sensitive: 'Unusually sensitive people should consider limiting prolonged outdoor exertion.',
+    ops: 'Normal operations. Monitor sensitive crew members during extended outdoor work.' },
+  { max: 150, label: 'Unhealthy for Sensitive Groups', cls: 'usg', color: '#FF6D00', bg: '#FFF3E0', text: '#7E2C00',
+    general: 'General public not likely affected; sensitive groups may experience symptoms.',
+    sensitive: 'Sensitive individuals should limit prolonged outdoor exertion.',
+    ops: 'Increase rehab frequency. Monitor crew members with asthma or cardiac history. Consider shorter work cycles.' },
+  { max: 200, label: 'Unhealthy',              cls: 'unhealthy', color: '#D50000', bg: '#FFEBEE', text: '#7F0000',
+    general: 'Everyone may begin to experience health effects.',
+    sensitive: 'Sensitive groups should avoid prolonged outdoor exertion.',
+    ops: 'Mandatory enhanced rehab. Shorten work/rest cycles. Document exposure. Brief all crews on symptoms.' },
+  { max: 300, label: 'Very Unhealthy',         cls: 'very',      color: '#7B1FA2', bg: '#F3E5F5', text: '#4A0072',
+    general: 'Health alert — everyone may experience more serious health effects.',
+    sensitive: 'Sensitive groups should avoid all outdoor exertion.',
+    ops: 'Restrict unnecessary outdoor exposure. SCBA consideration for extended operations. Notify department health officer.' },
+  { max: 500, label: 'Hazardous',              cls: 'hazardous', color: '#4E0000', bg: '#4E0000', text: '#FFCCBC',
+    general: 'Health warning of emergency conditions. Everyone is likely to be affected.',
+    sensitive: 'Avoid all outdoor activity.',
+    ops: 'Emergency protocols. Limit all crew exposure. Contact department health officer immediately. Document all exposure.' },
+];
+
+function getLevel(aqi) {
+  return AQI_LEVELS.find(l => aqi <= l.max) || AQI_LEVELS[AQI_LEVELS.length - 1];
+}
+
+function aqiMarkerPct(aqi) {
+  return Math.min(99, Math.max(1, (Math.min(aqi, 500) / 500) * 100));
+}
+
+function setStatus(cls, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + cls;
+  document.getElementById('status-text').textContent = text;
+}
+
+// ── RENDER ──
+function render(observations) {
+  // Find PM2.5 and Ozone
+  const pm25 = observations.find(o => o.ParameterName === 'PM2.5');
+  const ozone = observations.find(o => o.ParameterName === 'O3' || o.ParameterName === 'OZONE');
+  const pm10  = observations.find(o => o.ParameterName === 'PM10');
+
+  // Primary AQI = worst of available
+  const all = [pm25, ozone, pm10].filter(Boolean);
+  const primary = all.reduce((worst, o) => (!worst || o.AQI > worst.AQI) ? o : worst, null);
+
+  if (!primary) {
+    showError('No AQI observations returned for this area.');
+    return;
+  }
+
+  const aqi = primary.AQI;
+  const level = getLevel(aqi);
+  const pm25Aqi = pm25 ? pm25.AQI : null;
+  const ozoneAqi = ozone ? ozone.AQI : null;
+  const isSmoke = aqi >= 100 && pm25 && pm25.AQI >= ozone?.AQI;
+
+  setStatus(level.cls, `${level.label} — AQI ${aqi}`);
+  document.getElementById('last-updated').textContent =
+    'Updated ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+
+  const markerPct = aqiMarkerPct(aqi);
+
+  document.getElementById('main-content').innerHTML = `
+
+    ${isSmoke ? `
+    <div class="smoke-banner visible">
+      <div class="smoke-banner-title">🔥 Possible Wildfire Smoke</div>
+      PM2.5 is the dominant pollutant — elevated fine particle levels are often linked to wildfire smoke
+      on the Front Range. Monitor AirNow and NIFC for active fires in the region.
+      <a href="wildfires.html" style="color:var(--fire);font-weight:600;display:inline-block;margin-top:6px;">→ View Active Wildfires</a>
+    </div>` : ''}
+
+    <!-- BIG AQI CARD -->
+    <div class="aqi-hero">
+      <div class="aqi-hero-top">
+        <div class="aqi-left">
+          <div class="aqi-location">📍 Westminster, CO</div>
+          <div class="aqi-number" style="color:${level.color}">${aqi}</div>
+          <div class="aqi-label" style="color:${level.color}">${level.label}</div>
+        </div>
+        <div class="aqi-right">
+          <div class="aqi-pollutant">Primary Pollutant</div>
+          <div class="aqi-pollutant-value">${primary.ParameterName}</div>
+          ${primary.Concentration !== undefined ? `<div style="font-size:12px;color:var(--smoke);margin-top:4px;">${primary.Concentration} ${primary.Unit || 'µg/m³'}</div>` : ''}
+        </div>
+      </div>
+      <div class="aqi-scale">
+        <div class="aqi-scale-track">
+          <div class="aqi-scale-marker" style="left:${markerPct}%"></div>
+        </div>
+        <div class="aqi-scale-labels">
+          <span>Good</span><span>Moderate</span><span>USG</span><span>Unhealthy</span><span>Very</span><span>Hazardous</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">AQI</div>
+        <div class="metric-value" style="color:${level.color}">${aqi}</div>
+        <div class="metric-unit">${level.label}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">PM2.5</div>
+        <div class="metric-value">${pm25Aqi !== null ? pm25Aqi : '—'}</div>
+        <div class="metric-unit">Fine particles</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Ozone</div>
+        <div class="metric-value">${ozoneAqi !== null ? ozoneAqi : '—'}</div>
+        <div class="metric-unit">Ground-level</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">PM10</div>
+        <div class="metric-value">${pm10 ? pm10.AQI : '—'}</div>
+        <div class="metric-unit">Coarse particles</div>
+      </div>
+    </div>
+
+    <!-- NEARBY STATIONS -->
+    ${all.length > 1 ? `
+    <div class="section-label">Pollutant Breakdown</div>
+    <div class="station-list">
+      ${all.map(o => {
+        const l = getLevel(o.AQI);
+        return `
+        <div class="station-card">
+          <div class="station-accent" style="background:${l.color}"></div>
+          <div class="station-inner">
+            <div>
+              <div class="station-name">${o.ParameterName === 'PM2.5' ? 'Fine Particles (PM2.5)' : o.ParameterName === 'O3' || o.ParameterName === 'OZONE' ? 'Ozone (O₃)' : o.ParameterName}</div>
+              <div class="station-distance">${o.ReportingArea || 'Front Range'} · ${o.Concentration !== undefined ? o.Concentration + ' ' + (o.Unit || 'µg/m³') : ''}</div>
+            </div>
+            <div>
+              <div class="station-aqi-badge" style="color:${l.color}">${o.AQI}</div>
+              <div class="station-category" style="color:${l.color}">${l.label}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <!-- HEALTH GUIDANCE -->
+    <div class="section-label">Health & Operational Guidance</div>
+    <div class="guidance-card">
+      <div class="guidance-header" style="background:${level.color}; color:${aqi > 200 ? '#fff' : '#000'}">
+        ${level.label} — AQI ${aqi}
+      </div>
+      <div class="guidance-body">
+        <div class="guidance-row">
+          <div class="guidance-icon">👥</div>
+          <div class="guidance-text"><strong>General Public</strong>${level.general}</div>
+        </div>
+        <div class="guidance-row">
+          <div class="guidance-icon">⚠️</div>
+          <div class="guidance-text"><strong>Sensitive Groups</strong>${level.sensitive}</div>
+        </div>
+        <div class="guidance-row">
+          <div class="guidance-icon">🚒</div>
+          <div class="guidance-text"><strong>Fire Operations</strong>${level.ops}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO NOTE -->
+    <div class="info-note">
+      ℹ️ AQI data reflects the most recent hourly observation from the nearest monitoring station.
+      For forecast data and additional stations visit
+      <a href="https://www.airnow.gov/?city=Westminster&state=CO&country=USA" target="_blank">AirNow.gov</a>.
+      Front Range air quality can change rapidly during wildfire season.
+    </div>
+  `;
+}
+
+function showError(msg) {
+  setStatus('loading', 'Unable to load air quality data');
+  document.getElementById('main-content').innerHTML = `
+    <div class="loading-state">
+      <strong>Could not load air quality data.</strong><br><br>
+      ${msg}<br><br>
+      Visit <a href="https://www.airnow.gov/?city=Westminster&state=CO&country=USA" target="_blank"
+        style="color:#0D7ABF">AirNow.gov</a> directly for current conditions.
+    </div>`;
+}
+
+async function loadData() {
+  document.getElementById('main-content').innerHTML =
+    '<div class="loading-state"><div class="spinner"></div>Fetching air quality data from AirNow…</div>';
+  setStatus('loading', 'Loading air quality data…');
+
+  const API_KEY = '5EB54F05-489D-421E-B52E-3CD9A22B68B6';
+
+  try {
+    const url = `https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${LAT}&longitude=${LON}&distance=25&API_KEY=${API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data || data.length === 0) throw new Error('No observations returned');
+    render(data);
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+loadData();
+setInterval(loadData, 30 * 60 * 1000); // refresh every 30 minutes
+
+// PWA detection
+(function() {
+  var isStandalone = window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) {
+    document.body.classList.add('pwa-mode');
+    var nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.add('pwa-active');
+  }
+})();
+</script>
+
+</body>
+</html>
