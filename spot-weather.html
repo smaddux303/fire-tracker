@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Spot Weather — Westminster FD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
+  --paper: #F9F6F1; --white: #FFFFFF; --border: rgba(44,44,42,0.12); --radius: 10px;
+  --fire: #D85A30; --fire-deep: #4A1B0C; --fire-pale: #FAECE7;
+  --accent: #2E7D32; --accent-bg: #E8F5E9;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ash); min-height: 100vh; }
+
+/* ── HEADER ── */
+.header { background: #0A1628; color: var(--white); position: relative; overflow: hidden; }
+.header-inner { max-width: 960px; margin: 0 auto; padding: 2rem 2rem 1.5rem; position: relative; z-index: 1; }
+.header-eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #7EC8E3; margin-bottom: 0.4rem; font-weight: 500; }
+.header h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem, 7vw, 4.5rem); line-height: 0.95; color: var(--white); }
+.header h1 span { color: #7EC8E3; }
+.header-sub { margin-top: 0.6rem; font-size: 14px; color: rgba(255,255,255,0.5); }
+.header-glow { position: absolute; right: -60px; top: -60px; width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(126,200,227,0.1) 0%, transparent 70%); pointer-events: none; }
+
+/* ── STATUS PILL ── */
+.status-bar { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
+.status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 0.55rem 1.1rem;
+  border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.03em; text-transform: uppercase; }
+.status-pill.loading  { background: #FAEEDA; color: #633806; }
+.status-pill.low      { background: #E8F5E9; color: #1B5E20; }
+.status-pill.moderate { background: #FFFDE7; color: #5D4037; }
+.status-pill.high     { background: #FFF3E0; color: #7E2C00; }
+.status-pill.extreme  { background: var(--fire-pale); color: var(--fire-deep); }
+.status-pill.redflag  { background: #7f0000; color: #fff; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
+.status-pill.loading .status-dot { animation: pulse 1s infinite; }
+.status-pill.redflag .status-dot { animation: pulse 1.5s infinite; background: #ff8a80; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.4);} }
+
+/* ── MAIN ── */
+.main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+/* ── RED FLAG BANNER ── */
+.redflag-banner { background: #7f0000; border-radius: var(--radius); padding: 1rem 1.2rem;
+  color: #fff; margin-bottom: 1.5rem; display: none; }
+.redflag-banner.visible { display: block; }
+.redflag-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.04em; margin-bottom: 4px; }
+.redflag-body { font-size: 13px; line-height: 1.6; opacity: 0.9; }
+.redflag-conditions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.redflag-tag { background: rgba(255,255,255,0.15); border-radius: 4px; padding: 3px 10px; font-size: 12px; font-weight: 600; }
+
+/* ── FIRE WEATHER INDEX CARD ── */
+.fwi-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  overflow: hidden; margin-bottom: 1.5rem; }
+.fwi-top { padding: 1.4rem 1.4rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.fwi-left {}
+.fwi-eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 4px; }
+.fwi-score { font-family: 'Bebas Neue', sans-serif; font-size: 5.5rem; line-height: 1; }
+.fwi-label { font-size: 14px; font-weight: 600; margin-top: 2px; }
+.fwi-right { text-align: right; }
+.fwi-updated { font-size: 11px; color: var(--smoke); }
+.fwi-location { font-size: 13px; font-weight: 600; color: var(--ash); margin-top: 4px; }
+
+/* FWI gauge bar */
+.fwi-gauge { padding: 1rem 1.4rem 1.4rem; }
+.fwi-track { height: 10px; border-radius: 5px; background: linear-gradient(to right,
+  #2E7D32 0%, #2E7D32 20%,
+  #F9A825 20%, #F9A825 40%,
+  #EF6C00 40%, #EF6C00 60%,
+  #D85A30 60%, #D85A30 80%,
+  #7f0000 80%, #7f0000 100%
+); position: relative; margin-bottom: 6px; }
+.fwi-marker { position: absolute; top: 50%; transform: translate(-50%,-50%);
+  width: 16px; height: 16px; background: var(--white); border: 3px solid var(--ash);
+  border-radius: 50%; transition: left 0.6s ease; }
+.fwi-track-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--smoke); }
+
+/* ── METRICS GRID ── */
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.metric { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 0.9rem 1rem; }
+.metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); font-weight: 500; margin-bottom: 4px; }
+.metric-value { font-size: 1.6rem; font-family: 'Bebas Neue', sans-serif; line-height: 1; color: var(--ash); }
+.metric-unit { font-size: 11px; color: var(--smoke); margin-top: 2px; }
+.metric.alert .metric-value { color: var(--fire); }
+.metric.warn  .metric-value { color: #BA7517; }
+
+/* ── WIND COMPASS ── */
+.conditions-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 1.5rem; align-items: start; }
+.compass-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 1rem; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 110px; }
+.compass-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); font-weight: 500; }
+.compass-ring { position: relative; width: 80px; height: 80px; }
+.compass-ring svg { width: 80px; height: 80px; }
+.compass-dir { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--ash); }
+.compass-speed { font-size: 12px; color: var(--smoke); }
+
+/* ── 7-DAY FORECAST ── */
+.section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 0.8rem; }
+.forecast-scroll { overflow-x: auto; margin-bottom: 1.5rem; padding-bottom: 4px; }
+.forecast-row { display: flex; gap: 10px; min-width: max-content; }
+.forecast-day { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 0.9rem 1rem; min-width: 120px; flex-shrink: 0; }
+.forecast-day.redflag-day { border-color: rgba(127,0,0,0.4); background: #fff8f8; }
+.forecast-dow  { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); font-weight: 600; }
+.forecast-date { font-size: 10px; color: var(--mist); margin-bottom: 8px; }
+.forecast-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.forecast-temps { display: flex; gap: 6px; align-items: baseline; margin-bottom: 6px; }
+.forecast-hi { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--ash); }
+.forecast-lo { font-size: 12px; color: var(--smoke); }
+.forecast-detail { font-size: 11px; color: var(--smoke); line-height: 1.5; }
+.forecast-detail span { display: block; }
+.forecast-fwi { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+
+/* ── OPERATIONAL NOTES ── */
+.ops-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
+  overflow: hidden; margin-bottom: 1.5rem; }
+.ops-header { padding: 0.8rem 1.1rem; font-weight: 700; font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.06em; background: #0A1628; color: var(--white); }
+.ops-body { padding: 1rem 1.1rem; }
+.ops-row { display: flex; gap: 10px; margin-bottom: 10px; font-size: 13px; line-height: 1.6; }
+.ops-row:last-child { margin-bottom: 0; }
+.ops-icon { font-size: 1.2rem; flex-shrink: 0; }
+
+/* ── LOADING/ERROR ── */
+.loading-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 2rem; text-align: center; color: var(--smoke); font-size: 14px; margin-bottom: 1.5rem; }
+.spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: #7EC8E3;
+  border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.8rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── FOOTER ── */
+.footer { max-width: 960px; margin: 0 auto; padding: 0 2rem 2rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.footer-left { font-size: 12px; color: var(--smoke); }
+.footer-left a { color: #0D7ABF; text-decoration: none; }
+.footer-left a:hover { text-decoration: underline; }
+.refresh-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  background: #0A1628; color: var(--white); border: none; border-radius: var(--radius);
+  padding: 0.5rem 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+.refresh-btn:hover { background: #7EC8E3; color: #0A1628; }
+.refresh-btn svg { width: 14px; height: 14px; }
+
+/* ── INFO NOTE ── */
+.info-note { background: #E3F2FD; border: 1px solid rgba(13,122,191,0.25); border-radius: var(--radius);
+  padding: 0.9rem 1.1rem; font-size: 12px; color: #0D47A1; line-height: 1.5; margin-bottom: 1.5rem; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(10,22,40,0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+  display: none; align-items: center; justify-content: space-around; z-index: 999;
+}
+.bottom-nav.pwa-active { display: flex; }
+.bottom-nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  text-decoration: none; color: rgba(255,255,255,0.6);
+  font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 500;
+  letter-spacing: 0.04em; padding: 4px 20px; border-radius: 8px;
+  transition: color 0.15s; cursor: pointer; background: none; border: none;
+}
+.bottom-nav-btn:active { color: #7EC8E3; transform: scale(0.92); }
+.bottom-nav-btn.home { color: #7EC8E3; }
+.bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
+body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-glow"></div>
+  <div class="header-inner">
+    <div class="header-eyebrow">🌤️ Situational Awareness</div>
+    <h1>Spot <span>Weather</span></h1>
+    <p class="header-sub">Westminster, CO — NWS Fire Weather Forecast</p>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-pill loading" id="status-pill">
+    <div class="status-dot"></div>
+    <span id="status-text">Loading weather data…</span>
+  </div>
+</div>
+
+<main class="main" id="main-content">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    Fetching NWS forecast for Westminster…
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-left">
+    Data from <a href="https://www.weather.gov" target="_blank">NWS / weather.gov</a> &bull;
+    <a href="https://forecast.weather.gov/MapClick.php?CityName=Westminster&state=CO&site=BOU&textField1=39.8367&textField2=-105.0372" target="_blank">Full NWS Forecast</a> &bull;
+    <span id="last-updated">—</span>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Refresh
+  </button>
+</footer>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a class="bottom-nav-btn home" href="index.html">
+    <div class="bottom-nav-icon">🏠</div>
+    <span>Home</span>
+  </a>
+  <button class="bottom-nav-btn" onclick="window.location.reload()">
+    <div class="bottom-nav-icon">🔄</div>
+    <span>Refresh</span>
+  </button>
+  <a class="bottom-nav-btn" href="javascript:history.back()">
+    <div class="bottom-nav-icon">◀</div>
+    <span>Back</span>
+  </a>
+</div>
+
+<script>
+// Westminster, CO
+const LAT = 39.8367;
+const LON = -105.0372;
+
+// NWS gridpoint for Westminster (BOU office, grid 57,77)
+const NWS_POINTS_URL  = `https://api.weather.gov/points/${LAT},${LON}`;
+
+// ── FIRE WEATHER INDEX (simplified) ──
+// Based on temperature, relative humidity, and wind speed.
+// Score 0–100 where higher = greater fire danger.
+// Thresholds align with NWS red flag criteria for Front Range:
+//   RH < 15%, wind > 20mph, temp > 75°F = red flag conditions
+function calcFWI(tempF, rhPct, windMph) {
+  if (tempF === null || rhPct === null || windMph === null) return null;
+
+  // Temperature component (0–40): peaks at 110°F
+  const tScore = Math.min(40, Math.max(0, ((tempF - 32) / 78) * 40));
+
+  // Humidity component (0–40): inverted, low RH = high score
+  const hScore = Math.min(40, Math.max(0, ((100 - rhPct) / 100) * 40));
+
+  // Wind component (0–20): peaks at 40mph
+  const wScore = Math.min(20, Math.max(0, (windMph / 40) * 20));
+
+  return Math.round(tScore + hScore + wScore);
+}
+
+function fwiLevel(score) {
+  if (score === null) return { label: 'Unknown', cls: 'loading', color: '#B4B2A9', bg: '#F9F6F1' };
+  if (score < 20) return { label: 'Low',      cls: 'low',      color: '#2E7D32', bg: '#E8F5E9' };
+  if (score < 40) return { label: 'Moderate', cls: 'moderate', color: '#F9A825', bg: '#FFFDE7' };
+  if (score < 60) return { label: 'High',     cls: 'high',     color: '#EF6C00', bg: '#FFF3E0' };
+  if (score < 80) return { label: 'Very High',cls: 'extreme',  color: '#D85A30', bg: var_fire_pale() };
+  return              { label: 'Extreme',    cls: 'redflag',  color: '#7f0000', bg: '#ffebee' };
+}
+function var_fire_pale() { return '#FAECE7'; }
+
+function isRedFlag(tempF, rhPct, windMph) {
+  // NWS BOU red flag thresholds for Front Range
+  return rhPct !== null && rhPct <= 15 &&
+         windMph !== null && windMph >= 20 &&
+         tempF !== null && tempF >= 75;
+}
+
+function windDir(deg) {
+  if (deg === null) return '—';
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+function compassArrow(deg) {
+  // Returns SVG arrow pointing in wind direction (FROM direction)
+  const fromDeg = (deg + 180) % 360; // arrow points FROM
+  return `
+    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(44,44,42,0.1)" stroke-width="2"/>
+      <text x="40" y="12" text-anchor="middle" font-size="9" fill="#B4B2A9" font-family="DM Sans,sans-serif" font-weight="600">N</text>
+      <text x="40" y="73" text-anchor="middle" font-size="9" fill="#B4B2A9" font-family="DM Sans,sans-serif" font-weight="600">S</text>
+      <text x="10" y="44" text-anchor="middle" font-size="9" fill="#B4B2A9" font-family="DM Sans,sans-serif" font-weight="600">W</text>
+      <text x="70" y="44" text-anchor="middle" font-size="9" fill="#B4B2A9" font-family="DM Sans,sans-serif" font-weight="600">E</text>
+      <g transform="rotate(${fromDeg}, 40, 40)">
+        <polygon points="40,16 35,52 40,46 45,52" fill="#D85A30"/>
+        <polygon points="40,64 35,52 40,58 45,52" fill="rgba(44,44,42,0.25)"/>
+      </g>
+    </svg>`;
+}
+
+function tempColor(f) {
+  if (f >= 95) return '#D50000';
+  if (f >= 85) return '#D85A30';
+  if (f >= 75) return '#F9A825';
+  return '#2C2C2A';
+}
+
+function rhColor(rh) {
+  if (rh <= 10) return '#D50000';
+  if (rh <= 15) return '#D85A30';
+  if (rh <= 25) return '#F9A825';
+  return '#2C2C2A';
+}
+
+function windColor(mph) {
+  if (mph >= 30) return '#D50000';
+  if (mph >= 20) return '#D85A30';
+  if (mph >= 15) return '#F9A825';
+  return '#2C2C2A';
+}
+
+function weatherIcon(shortForecast) {
+  const f = (shortForecast || '').toLowerCase();
+  if (f.includes('thunder')) return '⛈';
+  if (f.includes('snow') || f.includes('blizzard')) return '❄️';
+  if (f.includes('rain') || f.includes('shower')) return '🌧️';
+  if (f.includes('fog')) return '🌫️';
+  if (f.includes('wind')) return '💨';
+  if (f.includes('cloud') || f.includes('overcast')) return '☁️';
+  if (f.includes('partly') || f.includes('mostly cloudy')) return '⛅';
+  if (f.includes('sunny') || f.includes('clear')) return '☀️';
+  return '🌤️';
+}
+
+function mpsToMph(mps) { return mps !== null ? Math.round(mps * 2.237) : null; }
+function cToF(c) { return c !== null ? Math.round(c * 9/5 + 32) : null; }
+
+function setStatus(cls, text) {
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + cls;
+  document.getElementById('status-text').textContent = text;
+}
+
+// ── OPERATIONAL GUIDANCE ──
+function opsGuidance(fwi, redflag, windMph, rhPct) {
+  const rows = [];
+
+  if (redflag) {
+    rows.push({ icon: '🚨', text: '<strong>Red Flag Conditions:</strong> Elevated fire behavior expected. Brief all crews on fire weather. Consider increased staffing or pre-positioning for interface areas. Coordinate with surrounding agencies.' });
+  }
+
+  if (windMph !== null && windMph >= 20) {
+    rows.push({ icon: '💨', text: `<strong>High Winds (${windMph} mph):</strong> Rapid fire spread potential. Account for wind direction when establishing defensive positions. Ensure aerial support awareness if applicable.` });
+  }
+
+  if (rhPct !== null && rhPct <= 15) {
+    rows.push({ icon: '💧', text: `<strong>Critical Low Humidity (${rhPct}%):</strong> Fine fuels extremely receptive to ignition. Increased ember cast range. Extended mop-up times required.` });
+  }
+
+  if (fwi !== null && fwi >= 60 && !redflag) {
+    rows.push({ icon: '⚠️', text: '<strong>Very High Fire Weather Index:</strong> Conditions approaching red flag criteria. Monitor closely for deterioration. Consider pre-cautionary notifications to interface neighborhoods.' });
+  }
+
+  if (fwi !== null && fwi < 40) {
+    rows.push({ icon: '✅', text: '<strong>Favorable Conditions:</strong> Fire weather indices within normal range. Standard protocols apply. Continue monitoring for afternoon wind shifts typical of Front Range.' });
+  }
+
+  rows.push({ icon: '🌬️', text: 'Front Range tip: Watch for afternoon upslope/downslope wind shifts, especially in spring and fall. Conditions can deteriorate rapidly as marine push subsides.' });
+
+  return rows;
+}
+
+// ── RENDER ──
+function render(current, hourly, daily, nwsAlerts) {
+  const tempF    = cToF(current.temperature?.value ?? null);
+  const rhPct    = Math.round(current.relativeHumidity?.value ?? null);
+  const windMph  = mpsToMph(current.windSpeed?.value ?? null);
+  const windDeg  = current.windDirection?.value ?? null;
+  const dewF     = cToF(current.dewpoint?.value ?? null);
+
+  const fwi      = calcFWI(tempF, rhPct, windMph);
+  const fwiLvl   = fwiLevel(fwi);
+  const redflag  = isRedFlag(tempF, rhPct, windMph);
+
+  // Status pill
+  setStatus(redflag ? 'redflag' : fwiLvl.cls,
+    redflag ? '🚨 Red Flag Conditions' : `Fire Weather: ${fwiLvl.label} — FWI ${fwi ?? '—'}`);
+
+  document.getElementById('last-updated').textContent =
+    'Updated ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
+
+  // Build 7-day from daily periods
+  const days = [];
+  for (let i = 0; i < daily.length - 1; i += 2) {
+    const day  = daily[i];
+    const nite = daily[i+1] || {};
+    const hiF  = day.temperature;
+    const loF  = nite.temperature ?? null;
+    const wMph = mpsToMph(day.windSpeed ? parseInt(day.windSpeed) : null);
+    // RH not in daily — estimate from dewpoint/temp if available
+    const dayFwi = calcFWI(hiF, null, wMph); // partial without RH
+    const dayRf  = wMph >= 20 && hiF >= 75;
+    const lvl    = fwiLevel(dayFwi);
+    days.push({ day, nite, hiF, loF, wMph, dayFwi, dayRf, lvl });
+    if (days.length >= 7) break;
+  }
+
+  const fwiPct = fwi !== null ? Math.min(98, Math.max(2, fwi)) : 50;
+
+  const redflagConditions = [];
+  if (redflag) {
+    if (rhPct <= 15)  redflagConditions.push(`RH ${rhPct}% (≤15%)`);
+    if (windMph >= 20) redflagConditions.push(`Wind ${windMph} mph (≥20 mph)`);
+    if (tempF >= 75)  redflagConditions.push(`Temp ${tempF}°F (≥75°F)`);
+  }
+
+  const opsRows = opsGuidance(fwi, redflag, windMph, rhPct);
+
+  document.getElementById('main-content').innerHTML = `
+
+    <!-- RED FLAG BANNER -->
+    <div class="redflag-banner ${redflag ? 'visible' : ''}">
+      <div class="redflag-title">🚨 Red Flag Conditions — Westminster</div>
+      <div class="redflag-body">
+        Critical fire weather conditions are present. Relative humidity, wind, and temperature have all crossed red flag thresholds simultaneously.
+      </div>
+      <div class="redflag-conditions">
+        ${redflagConditions.map(c => `<span class="redflag-tag">${c}</span>`).join('')}
+      </div>
+    </div>
+
+    <!-- FWI CARD -->
+    <div class="fwi-card">
+      <div class="fwi-top">
+        <div class="fwi-left">
+          <div class="fwi-eyebrow">Fire Weather Index</div>
+          <div class="fwi-score" style="color:${fwiLvl.color}">${fwi ?? '—'}</div>
+          <div class="fwi-label" style="color:${fwiLvl.color}">${fwiLvl.label}</div>
+        </div>
+        <div class="fwi-right">
+          <div class="fwi-location">📍 Westminster, CO</div>
+          <div class="fwi-updated" id="fwi-updated" style="margin-top:4px">Elev. ~5,387 ft</div>
+          <div style="margin-top:8px;font-size:12px;color:var(--smoke)">Based on current<br>temp, RH & wind</div>
+        </div>
+      </div>
+      <div class="fwi-gauge">
+        <div class="fwi-track">
+          <div class="fwi-marker" style="left:${fwiPct}%"></div>
+        </div>
+        <div class="fwi-track-labels">
+          <span>Low</span><span>Moderate</span><span>High</span><span>Very High</span><span>Extreme</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CURRENT CONDITIONS METRICS -->
+    <div class="metrics">
+      <div class="metric ${tempF >= 85 ? 'alert' : tempF >= 75 ? 'warn' : ''}">
+        <div class="metric-label">Temperature</div>
+        <div class="metric-value" style="color:${tempColor(tempF)}">${tempF ?? '—'}°</div>
+        <div class="metric-unit">Fahrenheit</div>
+      </div>
+      <div class="metric ${rhPct <= 10 ? 'alert' : rhPct <= 15 ? 'warn' : ''}">
+        <div class="metric-label">Rel. Humidity</div>
+        <div class="metric-value" style="color:${rhColor(rhPct)}">${rhPct ?? '—'}%</div>
+        <div class="metric-unit">${rhPct <= 15 ? '⚠ Critical' : rhPct <= 25 ? 'Low' : 'Current'}</div>
+      </div>
+      <div class="metric ${windMph >= 20 ? 'alert' : windMph >= 15 ? 'warn' : ''}">
+        <div class="metric-label">Wind Speed</div>
+        <div class="metric-value" style="color:${windColor(windMph)}">${windMph ?? '—'}</div>
+        <div class="metric-unit">mph · ${windDir(windDeg)}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Dew Point</div>
+        <div class="metric-value">${dewF ?? '—'}°</div>
+        <div class="metric-unit">Fahrenheit</div>
+      </div>
+    </div>
+
+    <!-- WIND COMPASS + CONDITIONS -->
+    <div class="conditions-row">
+      <div style="display:flex;flex-direction:column;gap:10px;flex:1">
+        <div style="background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1rem;">
+          <div class="section-label" style="margin-bottom:0.6rem">Current Conditions</div>
+          <div style="font-size:13px;color:var(--smoke);line-height:1.8">
+            <div><strong style="color:var(--ash)">Sky:</strong> ${current.textDescription || '—'}</div>
+            <div><strong style="color:var(--ash)">Wind:</strong> ${windMph ?? '—'} mph from ${windDir(windDeg)}${windDeg !== null ? ` (${Math.round(windDeg)}°)` : ''}</div>
+            <div><strong style="color:var(--ash)">Humidity:</strong> ${rhPct ?? '—'}%</div>
+            <div><strong style="color:var(--ash)">Dew Point:</strong> ${dewF ?? '—'}°F</div>
+          </div>
+        </div>
+      </div>
+      <div class="compass-card">
+        <div class="compass-label">Wind</div>
+        <div class="compass-ring">${windDeg !== null ? compassArrow(windDeg) : '<svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="rgba(44,44,42,0.1)" stroke-width="2"/></svg>'}</div>
+        <div class="compass-dir">${windDir(windDeg)}</div>
+        <div class="compass-speed">${windMph ?? '—'} mph</div>
+      </div>
+    </div>
+
+    <!-- 7-DAY FORECAST -->
+    <div class="section-label">7-Day Fire Weather Outlook</div>
+    <div class="forecast-scroll">
+      <div class="forecast-row">
+        ${days.map(d => {
+          const lvl = d.lvl;
+          const dow = new Date(d.day.startTime).toLocaleDateString('en-US',{weekday:'short'});
+          const dt  = new Date(d.day.startTime).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+          return `
+          <div class="forecast-day ${d.dayRf ? 'redflag-day' : ''}">
+            <div class="forecast-dow">${dow} ${d.dayRf ? '🚨' : ''}</div>
+            <div class="forecast-date">${dt}</div>
+            <div class="forecast-icon">${weatherIcon(d.day.shortForecast)}</div>
+            <div class="forecast-temps">
+              <span class="forecast-hi">${d.hiF ?? '—'}°</span>
+              <span class="forecast-lo">/${d.loF ?? '—'}°</span>
+            </div>
+            <div class="forecast-detail">
+              <span>💨 ${d.wMph ?? '—'} mph ${d.day.windDirection || ''}</span>
+              <span>☁️ ${d.day.shortForecast}</span>
+            </div>
+            ${d.dayFwi !== null ? `<span class="forecast-fwi" style="background:${lvl.bg};color:${lvl.color}">FWI ${d.dayFwi} · ${lvl.label}</span>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- OPERATIONAL GUIDANCE -->
+    <div class="section-label">Operational Guidance</div>
+    <div class="ops-card">
+      <div class="ops-header">🚒 Westminster FD — Fire Weather Notes</div>
+      <div class="ops-body">
+        ${opsRows.map(r => `<div class="ops-row"><div class="ops-icon">${r.icon}</div><div>${r.text}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <!-- INFO NOTE -->
+    <div class="info-note">
+      ℹ️ Fire Weather Index is calculated from current NWS observations (temperature, relative humidity, wind speed).
+      Red flag conditions follow NWS Boulder (BOU) thresholds: RH ≤ 15%, sustained winds ≥ 20 mph, temp ≥ 75°F.
+      7-day FWI is estimated from temperature and wind only (hourly RH not available in daily forecast).
+      For official red flag warnings visit <a href="https://www.weather.gov/bou/" target="_blank">weather.gov/bou</a>.
+    </div>
+  `;
+}
+
+function showError(msg) {
+  setStatus('loading', 'Unable to load weather data');
+  document.getElementById('main-content').innerHTML = `
+    <div class="loading-state">
+      <strong>Could not load NWS data.</strong><br><br>
+      ${msg}<br><br>
+      Visit <a href="https://forecast.weather.gov/MapClick.php?CityName=Westminster&state=CO" target="_blank"
+        style="color:#0D7ABF">weather.gov</a> directly for current conditions.
+    </div>`;
+}
+
+async function loadData() {
+  document.getElementById('main-content').innerHTML =
+    '<div class="loading-state"><div class="spinner"></div>Fetching NWS forecast for Westminster…</div>';
+  setStatus('loading', 'Loading weather data…');
+
+  try {
+    // Step 1: get gridpoint metadata
+    const pointsRes = await fetch(NWS_POINTS_URL, { headers: { 'User-Agent': 'WestminsterFDHub/1.0' } });
+    const pointsData = await pointsRes.json();
+    const props = pointsData.properties;
+
+    // Step 2: fetch current observations from nearest station
+    const stationsRes = await fetch(props.observationStations, { headers: { 'User-Agent': 'WestminsterFDHub/1.0' } });
+    const stationsData = await stationsRes.json();
+    const stationUrl = stationsData.features[0].id;
+
+    const obsRes = await fetch(`${stationUrl}/observations/latest`, { headers: { 'User-Agent': 'WestminsterFDHub/1.0' } });
+    const obsData = await obsRes.json();
+    const current = obsData.properties;
+
+    // Step 3: fetch daily forecast
+    const forecastRes = await fetch(props.forecast, { headers: { 'User-Agent': 'WestminsterFDHub/1.0' } });
+    const forecastData = await forecastRes.json();
+    const daily = forecastData.properties.periods;
+
+    render(current, null, daily, []);
+
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+loadData();
+setInterval(loadData, 30 * 60 * 1000);
+
+// PWA detection
+(function() {
+  var isStandalone = window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) {
+    document.body.classList.add('pwa-mode');
+    var nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.add('pwa-active');
+  }
+})();
+</script>
+
+</body>
+</html>
