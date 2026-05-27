@@ -253,6 +253,19 @@ function getLevel(aqi) {
   return AQI_LEVELS.find(l => aqi <= l.max) || AQI_LEVELS[AQI_LEVELS.length - 1];
 }
 
+function pollutantName(raw) {
+  const map = {
+    'PM2.5': 'PM2.5',
+    'PM10':  'PM10',
+    'O3':    'O\u2083 (Ozone)',
+    'OZONE': 'O\u2083 (Ozone)',
+    'NO2':   'NO\u2082',
+    'SO2':   'SO\u2082',
+    'CO':    'CO',
+  };
+  return map[raw] || raw;
+}
+
 function aqiMarkerPct(aqi) {
   return Math.min(99, Math.max(1, (Math.min(aqi, 500) / 500) * 100));
 }
@@ -311,7 +324,7 @@ function render(observations) {
         </div>
         <div class="aqi-right">
           <div class="aqi-pollutant">Primary Pollutant</div>
-          <div class="aqi-pollutant-value">${primary.ParameterName}</div>
+          <div class="aqi-pollutant-value">${pollutantName(primary.ParameterName)}</div>
           ${primary.Concentration !== undefined ? `<div style="font-size:12px;color:var(--smoke);margin-top:4px;">${primary.Concentration} ${primary.Unit || 'µg/m³'}</div>` : ''}
         </div>
       </div>
@@ -360,7 +373,7 @@ function render(observations) {
           <div class="station-accent" style="background:${l.color}"></div>
           <div class="station-inner">
             <div>
-              <div class="station-name">${o.ParameterName === 'PM2.5' ? 'Fine Particles (PM2.5)' : o.ParameterName === 'O3' || o.ParameterName === 'OZONE' ? 'Ozone (O₃)' : o.ParameterName}</div>
+              <div class="station-name">${o.ParameterName === 'PM2.5' ? 'Fine Particles (PM2.5)' : o.ParameterName === 'O3' || o.ParameterName === 'OZONE' ? 'Ozone (O\u2083)' : pollutantName(o.ParameterName)}</div>
               <div class="station-distance">${o.ReportingArea || 'Front Range'} · ${o.Concentration !== undefined ? o.Concentration + ' ' + (o.Unit || 'µg/m³') : ''}</div>
             </div>
             <div>
