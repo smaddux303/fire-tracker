@@ -24,6 +24,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .header h1 span { color: #62B8D4; }
 .header-sub { margin-top: 0.6rem; font-size: 14px; color: rgba(255,255,255,0.5); }
 .header-glow { position: absolute; right: -80px; top: -80px; width: 350px; height: 350px; border-radius: 50%; background: radial-gradient(circle, rgba(98,184,212,0.1) 0%, transparent 70%); pointer-events: none; }
+
 .status-bar { max-width: 960px; margin: 0 auto; padding: 0 2rem; }
 .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 0.55rem 1.1rem; border-radius: 0 0 var(--radius) var(--radius); font-size: 13px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
 .status-pill.loading  { background: #FAEEDA; color: #633806; }
@@ -36,9 +37,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .status-pill.loading .status-dot { animation: pulse 1s infinite; }
 .status-pill.severe  .status-dot { animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.4);} }
+
 .main { max-width: 960px; margin: 0 auto; padding: 2rem; }
 
-/* HERO CARD */
 .deficit-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 1.5rem; }
 .deficit-top { padding: 1.4rem 1.4rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .deficit-eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 4px; }
@@ -53,7 +54,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .precip-bar-observed { position: absolute; top: 0; left: 0; height: 100%; border-radius: 7px; transition: width 0.7s ease; }
 .precip-bar-footnote { font-size: 11px; color: var(--mist); }
 
-/* METRICS */
 .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
 .metric { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 0.9rem 1rem; }
 .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); font-weight: 500; margin-bottom: 4px; }
@@ -63,7 +63,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .metric.warn  .metric-value { color: #BA7517; }
 .metric.good  .metric-value { color: #2E7D32; }
 
-/* MONTHLY CHART */
 .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--smoke); font-weight: 600; margin-bottom: 0.8rem; }
 .monthly-scroll { overflow-x: auto; margin-bottom: 0.6rem; padding-bottom: 4px; }
 .monthly-row { display: flex; gap: 8px; min-width: max-content; }
@@ -81,16 +80,48 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .legend-dot { display: inline-block; width: 12px; height: 8px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
 
 /* DROUGHT */
-.drought-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+.drought-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
 .drought-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
 .drought-accent { height: 4px; }
 .drought-inner { padding: 0.9rem 1rem; }
 .drought-county { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); font-weight: 600; margin-bottom: 4px; }
 .drought-level { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; line-height: 1; }
 .drought-desc  { font-size: 12px; margin-top: 3px; }
-.drought-date  { font-size: 11px; color: var(--smoke); margin-top: 4px; }
+.drought-date  { font-size: 11px; color: var(--mist); margin-top: 4px; }
 
-/* IMPACT CARD */
+/* DROUGHT ADMIN PANEL */
+.drought-admin { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
+.drought-admin-header { background: #0D1B2A; padding: 0.9rem 1.2rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.drought-admin-title { font-size: 13px; font-weight: 600; color: #62B8D4; }
+.drought-admin-sub { font-size: 11px; color: rgba(255,255,255,0.4); }
+.drought-admin-body { display: none; padding: 1.2rem; }
+.drought-admin-body.open { display: block; }
+.pwd-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+.pwd-row input { font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; outline: none; flex: 1; max-width: 200px; }
+.pwd-row input:focus { border-color: #62B8D4; }
+.pwd-row button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; background: #0D1B2A; color: var(--white); border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; }
+.pwd-error { font-size: 12px; color: #A32D2D; margin-top: 4px; }
+.drought-form { display: none; }
+.drought-form.visible { display: block; }
+.drought-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1rem; }
+.drought-field label { display: block; font-size: 11px; color: var(--smoke); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.drought-field select { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; outline: none; color: var(--ash); background: var(--white); }
+.drought-field select:focus { border-color: #62B8D4; }
+.drought-save-row { display: flex; align-items: center; gap: 12px; }
+.drought-save-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; background: #2E7D32; color: var(--white); border: none; border-radius: var(--radius); padding: 9px 20px; cursor: pointer; }
+.drought-save-btn:hover { background: #1B5E20; }
+.drought-save-msg { font-size: 13px; font-weight: 500; }
+.drought-save-msg.success { color: #2E7D32; }
+.drought-save-msg.error   { color: #A32D2D; }
+
+/* USDM MAP */
+.usdm-map { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
+.usdm-map-header { padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.usdm-map-title { font-size: 13px; font-weight: 600; }
+.usdm-map-sub { font-size: 11px; color: var(--smoke); }
+.usdm-map img { width: 100%; display: block; }
+.usdm-map-footer { padding: 0.6rem 1.2rem; font-size: 11px; color: var(--smoke); border-top: 1px solid var(--border); }
+
 .impact-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 1.5rem; }
 .impact-header { padding: 0.8rem 1.1rem; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; background: #0D1B2A; color: var(--white); }
 .impact-body { padding: 1rem 1.1rem; }
@@ -98,13 +129,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .impact-row:last-child { margin-bottom: 0; }
 .impact-icon { font-size: 1.2rem; flex-shrink: 0; }
 
-/* LOADING/ERROR */
 .loading-state { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; color: var(--smoke); font-size: 14px; margin-bottom: 1.5rem; }
 .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: #62B8D4; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.8rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .info-note { background: var(--blue-pale); border: 1px solid rgba(21,101,192,0.2); border-radius: var(--radius); padding: 0.9rem 1.1rem; font-size: 12px; color: #0D47A1; line-height: 1.5; margin-bottom: 1.5rem; }
 
-/* FOOTER */
 .footer { max-width: 960px; margin: 0 auto; padding: 0 2rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .footer-left { font-size: 12px; color: var(--smoke); }
 .footer-left a { color: var(--blue); text-decoration: none; }
@@ -113,7 +142,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .refresh-btn:hover { background: #62B8D4; color: #0D1B2A; }
 .refresh-btn svg { width: 14px; height: 14px; }
 
-/* BOTTOM NAV */
 .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(13,27,42,0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.1); padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); display: none; align-items: center; justify-content: space-around; z-index: 999; }
 .bottom-nav.pwa-active { display: flex; }
 .bottom-nav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: rgba(255,255,255,0.6); font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.04em; padding: 4px 20px; border-radius: 8px; transition: color 0.15s; cursor: pointer; background: none; border: none; }
@@ -141,8 +169,85 @@ body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !import
   </div>
 </div>
 
-<main class="main" id="main-content">
-  <div class="loading-state"><div class="spinner"></div>Fetching climate data from NCEI…</div>
+<main class="main">
+  <div id="precip-content">
+    <div class="loading-state"><div class="spinner"></div>Fetching climate data from NCEI…</div>
+  </div>
+
+  <!-- DROUGHT MONITOR SECTION -->
+  <div id="drought-section" style="display:none">
+    <div class="section-label">US Drought Monitor — Adams & Jefferson Counties</div>
+    <div class="drought-grid" id="drought-grid"></div>
+
+    <!-- STAFF UPDATE PANEL -->
+    <div class="drought-admin">
+      <div class="drought-admin-header" onclick="toggleDroughtAdmin()">
+        <div>
+          <div class="drought-admin-title">✏️ Update Drought Status</div>
+          <div class="drought-admin-sub">Check droughtmonitor.unl.edu every Thursday — update here when conditions change</div>
+        </div>
+        <span id="drought-toggle-icon" style="color:#62B8D4;font-size:18px">▾</span>
+      </div>
+      <div class="drought-admin-body" id="drought-admin-body">
+        <div id="drought-pwd-section">
+          <div style="font-size:13px;color:var(--smoke);margin-bottom:8px">Enter department password to update:</div>
+          <div class="pwd-row">
+            <input type="password" id="drought-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')checkDroughtPwd()">
+            <button onclick="checkDroughtPwd()">Enter</button>
+          </div>
+          <div class="pwd-error" id="drought-pwd-error"></div>
+        </div>
+        <div class="drought-form" id="drought-form">
+          <div class="drought-fields">
+            <div class="drought-field">
+              <label>Adams County</label>
+              <select id="adams-drought">
+                <option value="None">None — No Drought</option>
+                <option value="D0">D0 — Abnormally Dry</option>
+                <option value="D1">D1 — Moderate Drought</option>
+                <option value="D2">D2 — Severe Drought</option>
+                <option value="D3">D3 — Extreme Drought</option>
+                <option value="D4">D4 — Exceptional Drought</option>
+              </select>
+            </div>
+            <div class="drought-field">
+              <label>Jefferson County</label>
+              <select id="jeff-drought">
+                <option value="None">None — No Drought</option>
+                <option value="D0">D0 — Abnormally Dry</option>
+                <option value="D1">D1 — Moderate Drought</option>
+                <option value="D2">D2 — Severe Drought</option>
+                <option value="D3">D3 — Extreme Drought</option>
+                <option value="D4">D4 — Exceptional Drought</option>
+              </select>
+            </div>
+          </div>
+          <div class="drought-save-row">
+            <button class="drought-save-btn" onclick="saveDrought()">Save & Publish</button>
+            <span class="drought-save-msg" id="drought-save-msg"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USDM MAP -->
+    <div class="usdm-map">
+      <div class="usdm-map-header">
+        <div>
+          <div class="usdm-map-title">Colorado Drought Map</div>
+          <div class="usdm-map-sub">US Drought Monitor — updated every Thursday</div>
+        </div>
+        <a href="https://droughtmonitor.unl.edu/CurrentMap/StateDroughtMonitor.aspx?CO" target="_blank"
+           style="font-size:12px;color:#62B8D4;text-decoration:none;font-weight:500">Full map ↗</a>
+      </div>
+      <img src="https://droughtmonitor.unl.edu/data/png/current/current_co_text.png"
+           alt="Colorado Drought Monitor Map"
+           onerror="this.parentElement.style.display='none'">
+      <div class="usdm-map-footer">Adams County is northeast of Denver; Jefferson County is southwest. Westminster spans both counties.</div>
+    </div>
+  </div>
+
+  <div id="impact-content"></div>
 </main>
 
 <footer class="footer">
@@ -167,300 +272,288 @@ body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !import
 </div>
 
 <script>
-// ── CONSTANTS ──
-// Denver International Airport GHCND station ID
-const STATION_ID = 'USW00003017';
+var BIN_ID     = '6a0ca0e6ee5a733b12e69903';
+var MASTER_KEY = '$2a$10$AmSubp9/w6PuIlI6TPzuu.oDt3nlAY/4VL30jINVp2iZuvguywN2.';
+var PASSWORD   = 'WestyFD';
+var API_BASE   = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 
-// 1991–2020 30-year monthly normals for Denver (inches)
-const MONTHLY_NORMALS = [0.51, 0.48, 1.27, 1.72, 2.14, 1.81, 2.17, 1.82, 1.30, 1.00, 0.73, 0.52];
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var STATION_ID = 'USW00003017';
+var MONTHLY_NORMALS = [0.51,0.48,1.27,1.72,2.14,1.81,2.17,1.82,1.30,1.00,0.73,0.52];
+var MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// Drought level definitions
-const DROUGHT_LEVELS = {
-  'None': { label: 'None', color: '#2E7D32', bg: '#E8F5E9', desc: 'No drought' },
-  'D0':   { label: 'D0',   color: '#F9A825', bg: '#FFFDE7', desc: 'Abnormally Dry' },
-  'D1':   { label: 'D1',   color: '#EF6C00', bg: '#FFF3E0', desc: 'Moderate Drought' },
-  'D2':   { label: 'D2',   color: '#D85A30', bg: '#FAECE7', desc: 'Severe Drought' },
-  'D3':   { label: 'D3',   color: '#B71C1C', bg: '#FFEBEE', desc: 'Extreme Drought' },
-  'D4':   { label: 'D4',   color: '#4A0000', bg: '#3D0000', desc: 'Exceptional Drought' },
+var DROUGHT_LEVELS = {
+  'None': { label:'None', color:'#2E7D32', bg:'#E8F5E9', desc:'No drought' },
+  'D0':   { label:'D0',   color:'#F9A825', bg:'#FFFDE7', desc:'Abnormally Dry' },
+  'D1':   { label:'D1',   color:'#EF6C00', bg:'#FFF3E0', desc:'Moderate Drought' },
+  'D2':   { label:'D2',   color:'#D85A30', bg:'#FAECE7', desc:'Severe Drought' },
+  'D3':   { label:'D3',   color:'#B71C1C', bg:'#FFEBEE', desc:'Extreme Drought' },
+  'D4':   { label:'D4',   color:'#4A0000', bg:'#3D0000', desc:'Exceptional Drought' },
 };
 
+var currentDroughtData = null;
+
 function deficitLevel(deficit) {
-  if (deficit <= -2.0) return { cls: 'severe',   label: 'Significant Deficit', color: '#D85A30' };
-  if (deficit <= -1.0) return { cls: 'moderate', label: 'Moderate Deficit',    color: '#EF6C00' };
-  if (deficit <= -0.2) return { cls: 'deficit',  label: 'Below Normal',        color: '#F9A825' };
-  if (deficit <   0.2) return { cls: 'normal',   label: 'Near Normal',         color: '#2E7D32' };
-  return                      { cls: 'surplus',  label: 'Above Normal',        color: '#1565C0' };
+  if (deficit <= -2.0) return { cls:'severe',   label:'Significant Deficit', color:'#D85A30' };
+  if (deficit <= -1.0) return { cls:'moderate', label:'Moderate Deficit',    color:'#EF6C00' };
+  if (deficit <= -0.2) return { cls:'deficit',  label:'Below Normal',        color:'#F9A825' };
+  if (deficit <   0.2) return { cls:'normal',   label:'Near Normal',         color:'#2E7D32' };
+  return                      { cls:'surplus',  label:'Above Normal',        color:'#1565C0' };
 }
 
 function setStatus(cls, text) {
-  const pill = document.getElementById('status-pill');
+  var pill = document.getElementById('status-pill');
   pill.className = 'status-pill ' + cls;
   document.getElementById('status-text').textContent = text;
 }
 
-// ── FETCH NCEI DAILY PRECIP ──
-// Uses NCEI Access Data Service — CORS-friendly, no API key needed
-async function fetchPrecip() {
-  const now   = new Date();
-  const year  = now.getFullYear();
-  const start = `${year}-01-01`;
-  // End = yesterday (NCEI data lags ~1 day)
-  const yest  = new Date(now); yest.setDate(yest.getDate() - 1);
-  const end   = yest.toISOString().split('T')[0];
-
-  const url = `https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&stations=${STATION_ID}&startDate=${start}&endDate=${end}&dataTypes=PRCP&format=json&units=standard`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`NCEI HTTP ${res.status}`);
-  const data = await res.json();
-  return { data, end };
-}
-
-// ── FETCH DROUGHT MONITOR ──
-async function fetchDrought(fips) {
-  try {
-    const url = `https://usdmdataservices.unl.edu/api/CountyStatistics/GetDroughtSeverityStatisticsByArea?aoi=${fips}&startdate=2020-01-01&enddate=2099-12-31&statisticsType=1`;
-    const res = await fetch(url);
-    const arr = await res.json();
-    if (!arr || arr.length === 0) return null;
-    const latest = arr[arr.length - 1];
-    for (const lvl of ['D4','D3','D2','D1','D0']) {
-      if (parseFloat(latest[lvl]) > 0) return { level: lvl, date: latest.MapDate };
-    }
-    return { level: 'None', date: latest.MapDate };
-  } catch(e) { return null; }
-}
-
-// ── RENDER ──
-function render(records, endDate, droughtAdams, droughtJeff) {
-  const now = new Date();
-  const currentMonth = now.getMonth(); // 0-indexed
-
-  // Sum observed precip by month (PRCP is in tenths of mm in GHCND → convert to inches)
-  // Actually with units=standard it's already in inches
-  const monthlyObs = new Array(12).fill(0);
-  const monthlyHasData = new Array(12).fill(false);
-
-  for (const rec of records) {
-    const month = parseInt(rec.DATE.split('-')[1]) - 1; // 0-indexed
-    const val   = parseFloat(rec.PRCP);
-    if (!isNaN(val)) {
-      monthlyObs[month] += val;
-      monthlyHasData[month] = true;
-    }
-  }
-
-  // Calculate cumulative normals up to current month
-  let ytdNormal = 0;
-  let mtdNormal = MONTHLY_NORMALS[currentMonth];
-  for (let i = 0; i <= currentMonth; i++) ytdNormal += MONTHLY_NORMALS[i];
-
-  // YTD observed = sum of all completed + current month partial
-  let ytdObs = 0;
-  for (let i = 0; i <= currentMonth; i++) {
-    if (monthlyHasData[i]) ytdObs += monthlyObs[i];
-  }
-
-  const mtdObs    = monthlyHasData[currentMonth] ? monthlyObs[currentMonth] : null;
-  const ytdDeficit = ytdObs - ytdNormal;
-  const mtdDeficit = mtdObs !== null ? mtdObs - mtdNormal : null;
-  const level      = deficitLevel(ytdDeficit);
-
-  setStatus(level.cls,
-    `${level.label} — ${ytdDeficit > 0 ? '+' : ''}${ytdDeficit.toFixed(2)}" YTD`);
-  document.getElementById('last-updated').textContent =
-    'Updated ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
-
-  // Bar chart
-  const maxVal  = Math.max(ytdObs, ytdNormal, 0.01);
-  const obsPct  = Math.min(100, Math.round((ytdObs    / maxVal) * 100));
-  const normPct = Math.min(100, Math.round((ytdNormal / maxVal) * 100));
-  const maxMonthly = Math.max(...MONTHLY_NORMALS, ...monthlyObs.slice(0, currentMonth + 1), 0.1);
-
-  // Monthly bars
-  const monthlyBarsHTML = MONTH_NAMES.map((name, i) => {
-    const isFuture  = i > currentMonth;
-    const isCurrent = i === currentMonth;
-    const norm      = MONTHLY_NORMALS[i];
-    const obs       = monthlyHasData[i] ? monthlyObs[i] : null;
-    const normH     = Math.round((norm / maxMonthly) * 52);
-    const obsH      = obs !== null ? Math.round((obs  / maxMonthly) * 52) : 0;
-    const diff      = obs !== null ? obs - norm : null;
-    const diffColor = diff === null ? '#B4B2A9' : diff < -0.1 ? '#D85A30' : diff > 0.1 ? '#1565C0' : '#2E7D32';
-    return `
-    <div class="monthly-bar-card${isCurrent ? ' current' : ''}${isFuture ? ' future' : ''}">
-      <div class="monthly-month">${name}${isCurrent ? ' ▸' : ''}</div>
-      <div class="monthly-bars">
-        <div class="bar bar-obs"  style="height:${obsH}px"  title="Observed: ${obs !== null ? obs.toFixed(2)+'"' : 'N/A'}"></div>
-        <div class="bar bar-norm" style="height:${normH}px" title="Normal: ${norm.toFixed(2)}\""></div>
-      </div>
-      <div class="monthly-val">${obs !== null ? obs.toFixed(2)+'"' : isFuture ? '—' : '—'}</div>
-      ${diff !== null ? `<div class="monthly-diff" style="color:${diffColor}">${diff > 0 ? '+' : ''}${diff.toFixed(2)}"</div>` : ''}
-    </div>`;
-  }).join('');
-
-  // Drought cards
-  const counties = [
-    { name: 'Adams County',     data: droughtAdams },
-    { name: 'Jefferson County', data: droughtJeff  },
+function renderDroughtCards(adamsLevel, jeffLevel, updatedDate) {
+  var today = updatedDate || new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var counties = [
+    { name:'Adams County',     level: adamsLevel },
+    { name:'Jefferson County', level: jeffLevel  },
   ];
-  const droughtHTML = counties.map(c => {
-    const d   = c.data;
-    const lvl = d ? (DROUGHT_LEVELS[d.level] || DROUGHT_LEVELS['None']) : DROUGHT_LEVELS['None'];
-    const dt  = d?.date ? new Date(d.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
-    return `
-    <div class="drought-card">
-      <div class="drought-accent" style="background:${lvl.color}"></div>
-      <div class="drought-inner">
-        <div class="drought-county">${c.name}</div>
-        <div class="drought-level" style="color:${lvl.color}">${lvl.label}</div>
-        <div class="drought-desc"  style="color:${lvl.color}">${lvl.desc}</div>
-        <div class="drought-date">As of ${dt}</div>
-      </div>
-    </div>`;
+  document.getElementById('drought-grid').innerHTML = counties.map(function(c) {
+    var lvl = DROUGHT_LEVELS[c.level] || DROUGHT_LEVELS['None'];
+    return '<div class="drought-card">' +
+      '<div class="drought-accent" style="background:' + lvl.color + '"></div>' +
+      '<div class="drought-inner">' +
+        '<div class="drought-county">' + c.name + '</div>' +
+        '<div class="drought-level" style="color:' + lvl.color + '">' + lvl.label + '</div>' +
+        '<div class="drought-desc" style="color:' + lvl.color + '">' + lvl.desc + '</div>' +
+        '<div class="drought-date">Updated ' + today + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('drought-section').style.display = '';
+
+  // Populate form selects
+  if (document.getElementById('adams-drought')) {
+    document.getElementById('adams-drought').value = adamsLevel || 'None';
+    document.getElementById('jeff-drought').value  = jeffLevel  || 'None';
+  }
+}
+
+async function loadDrought() {
+  try {
+    var res  = await fetch(API_BASE + '/latest', { headers: { 'X-Master-Key': MASTER_KEY } });
+    var json = await res.json();
+    var d    = json.record;
+    currentDroughtData = d;
+    var adamsLevel = (d.drought_adams      || {}).level || 'None';
+    var jeffLevel  = (d.drought_jefferson  || {}).level || 'None';
+    var updatedDate= (d.drought_adams      || {}).updated || null;
+    renderDroughtCards(adamsLevel, jeffLevel, updatedDate);
+  } catch(e) {
+    document.getElementById('drought-section').style.display = '';
+    document.getElementById('drought-grid').innerHTML =
+      '<div style="grid-column:1/-1;font-size:13px;color:var(--smoke);padding:1rem">Could not load drought status. Check connection.</div>';
+  }
+}
+
+function toggleDroughtAdmin() {
+  var body = document.getElementById('drought-admin-body');
+  var icon = document.getElementById('drought-toggle-icon');
+  body.classList.toggle('open');
+  icon.textContent = body.classList.contains('open') ? '▴' : '▾';
+  if (body.classList.contains('open')) document.getElementById('drought-pwd').focus();
+}
+
+function checkDroughtPwd() {
+  if (document.getElementById('drought-pwd').value === PASSWORD) {
+    document.getElementById('drought-pwd-section').style.display = 'none';
+    document.getElementById('drought-form').classList.add('visible');
+    if (currentDroughtData) {
+      document.getElementById('adams-drought').value = (currentDroughtData.drought_adams     ||{}).level || 'None';
+      document.getElementById('jeff-drought').value  = (currentDroughtData.drought_jefferson ||{}).level || 'None';
+    }
+  } else {
+    document.getElementById('drought-pwd-error').textContent = 'Incorrect password.';
+    document.getElementById('drought-pwd').value = '';
+    document.getElementById('drought-pwd').focus();
+  }
+}
+
+async function saveDrought() {
+  var msg = document.getElementById('drought-save-msg');
+  msg.textContent = 'Saving…';
+  msg.className = 'drought-save-msg';
+  var today = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  try {
+    var getRes = await fetch(API_BASE + '/latest', { headers: { 'X-Master-Key': MASTER_KEY } });
+    var current = await getRes.json();
+    var data = current.record;
+
+    data.drought_adams      = { level: document.getElementById('adams-drought').value, updated: today };
+    data.drought_jefferson  = { level: document.getElementById('jeff-drought').value,  updated: today };
+
+    var putRes = await fetch(API_BASE, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
+      body: JSON.stringify(data)
+    });
+    if (!putRes.ok) throw new Error('Save failed');
+
+    currentDroughtData = data;
+    renderDroughtCards(data.drought_adams.level, data.drought_jefferson.level, today);
+    msg.textContent = '✅ Saved!';
+    msg.className = 'drought-save-msg success';
+    setTimeout(function(){ msg.textContent = ''; }, 3000);
+  } catch(e) {
+    msg.textContent = '❌ Could not save.';
+    msg.className = 'drought-save-msg error';
+  }
+}
+
+async function fetchPrecip() {
+  var now   = new Date();
+  var year  = now.getFullYear();
+  var start = year + '-01-01';
+  var yest  = new Date(now); yest.setDate(yest.getDate() - 1);
+  var end   = yest.toISOString().split('T')[0];
+  var url   = 'https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&stations=' + STATION_ID + '&startDate=' + start + '&endDate=' + end + '&dataTypes=PRCP&format=json&units=standard';
+  var res   = await fetch(url);
+  if (!res.ok) throw new Error('NCEI HTTP ' + res.status);
+  var data  = await res.json();
+  return { data: data, end: end };
+}
+
+function renderPrecip(records, endDate) {
+  var now = new Date();
+  var currentMonth = now.getMonth();
+  var monthlyObs = new Array(12).fill(0);
+  var monthlyHasData = new Array(12).fill(false);
+
+  for (var i = 0; i < records.length; i++) {
+    var rec = records[i];
+    var month = parseInt(rec.DATE.split('-')[1]) - 1;
+    var val = parseFloat(rec.PRCP);
+    if (!isNaN(val)) { monthlyObs[month] += val; monthlyHasData[month] = true; }
+  }
+
+  var ytdNormal = 0;
+  var mtdNormal = MONTHLY_NORMALS[currentMonth];
+  for (var i = 0; i <= currentMonth; i++) ytdNormal += MONTHLY_NORMALS[i];
+
+  var ytdObs = 0;
+  for (var i = 0; i <= currentMonth; i++) { if (monthlyHasData[i]) ytdObs += monthlyObs[i]; }
+
+  var mtdObs     = monthlyHasData[currentMonth] ? monthlyObs[currentMonth] : null;
+  var ytdDeficit = ytdObs - ytdNormal;
+  var mtdDeficit = mtdObs !== null ? mtdObs - mtdNormal : null;
+  var level      = deficitLevel(ytdDeficit);
+
+  setStatus(level.cls, level.label + ' — ' + (ytdDeficit > 0 ? '+' : '') + ytdDeficit.toFixed(2) + '" YTD');
+  document.getElementById('last-updated').textContent =
+    'Updated ' + new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+
+  var maxVal  = Math.max(ytdObs, ytdNormal, 0.01);
+  var obsPct  = Math.min(100, Math.round((ytdObs    / maxVal) * 100));
+  var normPct = Math.min(100, Math.round((ytdNormal / maxVal) * 100));
+  var maxMonthly = Math.max.apply(null, MONTHLY_NORMALS.concat(monthlyObs.slice(0, currentMonth+1)).concat([0.1]));
+
+  var monthlyBarsHTML = MONTH_NAMES.map(function(name, i) {
+    var isFuture  = i > currentMonth;
+    var isCurrent = i === currentMonth;
+    var norm = MONTHLY_NORMALS[i];
+    var obs  = monthlyHasData[i] ? monthlyObs[i] : null;
+    var normH = Math.round((norm / maxMonthly) * 52);
+    var obsH  = obs !== null ? Math.round((obs  / maxMonthly) * 52) : 0;
+    var diff  = obs !== null ? obs - norm : null;
+    var diffColor = diff === null ? '#B4B2A9' : diff < -0.1 ? '#D85A30' : diff > 0.1 ? '#1565C0' : '#2E7D32';
+    return '<div class="monthly-bar-card' + (isCurrent?' current':'') + (isFuture?' future':'') + '">' +
+      '<div class="monthly-month">' + name + (isCurrent?' ▸':'') + '</div>' +
+      '<div class="monthly-bars">' +
+        '<div class="bar bar-obs"  style="height:' + obsH  + 'px"></div>' +
+        '<div class="bar bar-norm" style="height:' + normH + 'px"></div>' +
+      '</div>' +
+      '<div class="monthly-val">' + (obs !== null ? obs.toFixed(2)+'"' : '—') + '</div>' +
+      (diff !== null ? '<div class="monthly-diff" style="color:' + diffColor + '">' + (diff>0?'+':'') + diff.toFixed(2) + '"</div>' : '') +
+    '</div>';
   }).join('');
 
-  // Fire impact notes
-  const impactRows = buildImpactNotes(ytdDeficit, droughtAdams, droughtJeff);
+  document.getElementById('precip-content').innerHTML =
+    '<div class="deficit-card">' +
+      '<div class="deficit-top">' +
+        '<div>' +
+          '<div class="deficit-eyebrow">Year-to-Date vs Normal</div>' +
+          '<div class="deficit-number" style="color:' + level.color + '">' + (ytdDeficit>0?'+':'') + ytdDeficit.toFixed(2) + '"</div>' +
+          '<div class="deficit-label" style="color:' + level.color + '">' + level.label + '</div>' +
+        '</div>' +
+        '<div class="deficit-right">' +
+          '<strong>📍 Denver / Westminster</strong>' +
+          'Observed YTD: ' + ytdObs.toFixed(2) + '"<br>' +
+          'Normal YTD: ' + ytdNormal.toFixed(2) + '"<br>' +
+          '<span style="color:' + level.color + ';font-weight:600">' + Math.abs(ytdDeficit).toFixed(2) + '" ' + (ytdDeficit<0?'below':'above') + ' normal</span><br>' +
+          '<span style="font-size:11px">Through ' + new Date(endDate).toLocaleDateString('en-US',{month:'short',day:'numeric'}) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="precip-bar-section">' +
+        '<div class="precip-bar-label">' +
+          '<span>Observed <strong style="color:#62B8D4">' + ytdObs.toFixed(2) + '"</strong></span>' +
+          '<span>30-yr Normal <strong>' + ytdNormal.toFixed(2) + '"</strong></span>' +
+        '</div>' +
+        '<div class="precip-bar-track">' +
+          '<div class="precip-bar-normal"   style="width:' + normPct + '%"></div>' +
+          '<div class="precip-bar-observed" style="width:' + obsPct  + '%;background:' + level.color + '"></div>' +
+        '</div>' +
+        '<div class="precip-bar-footnote">Denver International Airport (GHCND:USW00003017) · 1991–2020 climate normals</div>' +
+      '</div>' +
+    '</div>' +
 
-  document.getElementById('main-content').innerHTML = `
+    '<div class="metrics">' +
+      '<div class="metric ' + (ytdDeficit<=-1?'alert':ytdDeficit<=-0.2?'warn':ytdDeficit>0.2?'good':'') + '"><div class="metric-label">YTD Deficit</div><div class="metric-value">' + (ytdDeficit>0?'+':'') + ytdDeficit.toFixed(2) + '"</div><div class="metric-unit">vs 30-yr normal</div></div>' +
+      '<div class="metric"><div class="metric-label">YTD Observed</div><div class="metric-value">' + ytdObs.toFixed(2) + '"</div><div class="metric-unit">inches this year</div></div>' +
+      '<div class="metric"><div class="metric-label">Month to Date</div><div class="metric-value">' + (mtdObs!==null?mtdObs.toFixed(2)+'"':'—') + '</div><div class="metric-unit">Normal: ' + mtdNormal.toFixed(2) + '"</div></div>' +
+      '<div class="metric ' + (mtdDeficit!==null&&mtdDeficit<=-0.2?'warn':mtdDeficit!==null&&mtdDeficit>0.2?'good':'') + '"><div class="metric-label">MTD Deficit</div><div class="metric-value">' + (mtdDeficit!==null?(mtdDeficit>0?'+':'')+mtdDeficit.toFixed(2)+'"':'—') + '</div><div class="metric-unit">this month</div></div>' +
+    '</div>' +
 
-    <!-- HERO DEFICIT CARD -->
-    <div class="deficit-card">
-      <div class="deficit-top">
-        <div>
-          <div class="deficit-eyebrow">Year-to-Date vs Normal</div>
-          <div class="deficit-number" style="color:${level.color}">
-            ${ytdDeficit > 0 ? '+' : ''}${ytdDeficit.toFixed(2)}"
-          </div>
-          <div class="deficit-label" style="color:${level.color}">${level.label}</div>
-        </div>
-        <div class="deficit-right">
-          <strong>📍 Denver / Westminster</strong>
-          Observed YTD: ${ytdObs.toFixed(2)}"<br>
-          Normal YTD: ${ytdNormal.toFixed(2)}"<br>
-          <span style="color:${level.color};font-weight:600">
-            ${Math.abs(ytdDeficit).toFixed(2)}" ${ytdDeficit < 0 ? 'below' : 'above'} normal
-          </span><br>
-          <span style="font-size:11px">Through ${new Date(endDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
-        </div>
-      </div>
-      <div class="precip-bar-section">
-        <div class="precip-bar-label">
-          <span>Observed <strong style="color:#62B8D4">${ytdObs.toFixed(2)}"</strong></span>
-          <span>30-yr Normal <strong>${ytdNormal.toFixed(2)}"</strong></span>
-        </div>
-        <div class="precip-bar-track">
-          <div class="precip-bar-normal"   style="width:${normPct}%"></div>
-          <div class="precip-bar-observed" style="width:${obsPct}%;background:${level.color}"></div>
-        </div>
-        <div class="precip-bar-footnote">Denver International Airport (GHCND:USW00003017) · 1991–2020 climate normals</div>
-      </div>
-    </div>
+    '<div class="section-label">Monthly Breakdown — Observed vs Normal</div>' +
+    '<div class="monthly-scroll"><div class="monthly-row">' + monthlyBarsHTML + '</div></div>' +
+    '<div class="legend">' +
+      '<span><span class="legend-dot" style="background:#62B8D4"></span>Observed</span>' +
+      '<span><span class="legend-dot" style="background:rgba(44,44,42,0.18)"></span>30-yr Normal</span>' +
+      '<span>▸ Current month (MTD)</span>' +
+    '</div>';
 
-    <!-- METRICS -->
-    <div class="metrics">
-      <div class="metric ${ytdDeficit <= -1 ? 'alert' : ytdDeficit <= -0.2 ? 'warn' : ytdDeficit > 0.2 ? 'good' : ''}">
-        <div class="metric-label">YTD Deficit</div>
-        <div class="metric-value">${ytdDeficit > 0 ? '+' : ''}${ytdDeficit.toFixed(2)}"</div>
-        <div class="metric-unit">vs 30-yr normal</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">YTD Observed</div>
-        <div class="metric-value">${ytdObs.toFixed(2)}"</div>
-        <div class="metric-unit">inches this year</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Month to Date</div>
-        <div class="metric-value">${mtdObs !== null ? mtdObs.toFixed(2)+'"' : '—'}</div>
-        <div class="metric-unit">Normal: ${mtdNormal.toFixed(2)}"</div>
-      </div>
-      <div class="metric ${mtdDeficit !== null && mtdDeficit <= -0.2 ? 'warn' : mtdDeficit !== null && mtdDeficit > 0.2 ? 'good' : ''}">
-        <div class="metric-label">MTD Deficit</div>
-        <div class="metric-value">${mtdDeficit !== null ? (mtdDeficit > 0 ? '+' : '') + mtdDeficit.toFixed(2)+'"' : '—'}</div>
-        <div class="metric-unit">this month</div>
-      </div>
-    </div>
-
-    <!-- MONTHLY CHART -->
-    <div class="section-label">Monthly Breakdown — Observed vs Normal</div>
-    <div class="monthly-scroll">
-      <div class="monthly-row">${monthlyBarsHTML}</div>
-    </div>
-    <div class="legend">
-      <span><span class="legend-dot" style="background:#62B8D4"></span>Observed</span>
-      <span><span class="legend-dot" style="background:rgba(44,44,42,0.18)"></span>30-yr Normal</span>
-      <span>▸ Current month (MTD)</span>
-    </div>
-
-    <!-- DROUGHT MONITOR -->
-    <div class="section-label">US Drought Monitor — Coverage Area</div>
-    <div class="drought-grid">${droughtHTML}</div>
-
-    <!-- FIRE IMPACT -->
-    <div class="section-label">Fire Operations Impact</div>
-    <div class="impact-card">
-      <div class="impact-header">🚒 Westminster FD — Fuel Moisture Assessment</div>
-      <div class="impact-body">
-        ${impactRows.map(r => `<div class="impact-row"><div class="impact-icon">${r.icon}</div><div>${r.text}</div></div>`).join('')}
-      </div>
-    </div>
-
-    <div class="info-note">
-      ℹ️ Precipitation data from NOAA NCEI daily summaries (Denver International Airport station).
-      Westminster precipitation closely tracks the Denver metro. Normals are 1991–2020 30-year averages.
-      Drought Monitor updated weekly (Thursdays) by the University of Nebraska Lincoln.
-    </div>
-  `;
-}
-
-function buildImpactNotes(deficit, droughtAdams, droughtJeff) {
-  const rows = [];
-  if (deficit <= -2.0) {
-    rows.push({ icon: '🔥', text: '<strong>Significant precipitation deficit:</strong> Fine fuel moisture critically reduced. Expect rapid fire spread and extended spotting distances. Pre-suppression awareness recommended for interface areas.' });
-  } else if (deficit <= -1.0) {
-    rows.push({ icon: '⚠️', text: '<strong>Moderate precipitation deficit:</strong> Fine fuels drier than seasonal average. Combined with low humidity and wind, fire behavior can be aggressive. Heightened awareness during red flag events.' });
-  } else if (deficit <= -0.2) {
-    rows.push({ icon: '📊', text: '<strong>Slightly below normal precipitation:</strong> Fuels somewhat drier than average. Normal protocols apply with increased awareness during elevated fire weather periods.' });
-  } else if (deficit > 0.2) {
-    rows.push({ icon: '✅', text: '<strong>Above normal precipitation:</strong> Fuel moisture elevated. Fire danger reduced compared to baseline, though conditions can still deteriorate rapidly during red flag events.' });
+  // Impact notes
+  var impactRows = [];
+  if (ytdDeficit <= -2.0) {
+    impactRows.push({icon:'🔥', text:'<strong>Significant precipitation deficit:</strong> Fine fuel moisture critically reduced. Expect rapid fire spread and extended spotting distances.'});
+  } else if (ytdDeficit <= -1.0) {
+    impactRows.push({icon:'⚠️', text:'<strong>Moderate precipitation deficit:</strong> Fine fuels drier than seasonal average. Combined with low humidity and wind, fire behavior can be aggressive.'});
+  } else if (ytdDeficit <= -0.2) {
+    impactRows.push({icon:'📊', text:'<strong>Slightly below normal precipitation:</strong> Fuels somewhat drier than average. Normal protocols apply with increased awareness during elevated fire weather periods.'});
   } else {
-    rows.push({ icon: '✅', text: '<strong>Near normal precipitation:</strong> Fuel moisture tracking with seasonal averages. Standard fire weather protocols apply.' });
+    impactRows.push({icon:'✅', text:'<strong>Near or above normal precipitation:</strong> Fuel moisture tracking with or above seasonal averages. Standard fire weather protocols apply.'});
   }
+  impactRows.push({icon:'💡', text:'Westminster tip: Interface areas along Standley Lake and Coal Creek corridor are particularly sensitive to fuel moisture. Dry grass in open space can carry fire rapidly toward structures during west or southwest wind events.'});
 
-  const worst = [droughtAdams, droughtJeff].filter(Boolean)
-    .sort((a,b) => ['None','D0','D1','D2','D3','D4'].indexOf(b.level) - ['None','D0','D1','D2','D3','D4'].indexOf(a.level))[0];
-
-  if (worst && ['D2','D3','D4'].includes(worst.level)) {
-    rows.push({ icon: '🌵', text: `<strong>Active drought (${worst.level}) in coverage area:</strong> Multi-week moisture deficit compounds fire risk beyond what YTD precip alone shows. Elevated risk persists even after isolated rain events.` });
-  }
-
-  rows.push({ icon: '💡', text: 'Westminster tip: Interface areas along Standley Lake and Coal Creek corridor are particularly sensitive to fuel moisture. Dry grass in open space can carry fire rapidly toward structures during west or southwest wind events.' });
-  return rows;
-}
-
-function showError(msg) {
-  setStatus('loading', 'Unable to load data');
-  document.getElementById('main-content').innerHTML = `
-    <div class="loading-state">
-      <strong>Could not load precipitation data.</strong><br><br>${msg}<br><br>
-      Visit <a href="https://www.ncei.noaa.gov" target="_blank" style="color:var(--blue)">NOAA NCEI</a> directly.
-    </div>`;
+  document.getElementById('impact-content').innerHTML =
+    '<div class="section-label">Fire Operations Impact</div>' +
+    '<div class="impact-card">' +
+      '<div class="impact-header">🚒 Westminster FD — Fuel Moisture Assessment</div>' +
+      '<div class="impact-body">' +
+        impactRows.map(function(r){ return '<div class="impact-row"><div class="impact-icon">'+r.icon+'</div><div>'+r.text+'</div></div>'; }).join('') +
+      '</div>' +
+    '</div>' +
+    '<div class="info-note">ℹ️ Precipitation data from NOAA NCEI daily summaries (Denver International Airport station). Drought status is manually updated by staff each Thursday using data from <a href="https://droughtmonitor.unl.edu" target="_blank">droughtmonitor.unl.edu</a>. <a href="https://droughtmonitor.unl.edu/Data/GISData.aspx" target="_blank">Sign up for free county email alerts</a> to get notified when conditions change.</div>';
 }
 
 async function loadData() {
-  document.getElementById('main-content').innerHTML =
+  document.getElementById('precip-content').innerHTML =
     '<div class="loading-state"><div class="spinner"></div>Fetching climate data from NCEI…</div>';
   setStatus('loading', 'Loading precipitation data…');
+
+  await loadDrought();
+
   try {
-    const [precipResult, droughtAdams, droughtJeff] = await Promise.all([
-      fetchPrecip(),
-      fetchDrought('08001'),
-      fetchDrought('08059'),
-    ]);
-    render(precipResult.data, precipResult.end, droughtAdams, droughtJeff);
+    var result = await fetchPrecip();
+    renderPrecip(result.data, result.end);
   } catch(err) {
-    showError(err.message);
+    setStatus('loading', 'Unable to load data');
+    document.getElementById('precip-content').innerHTML =
+      '<div class="loading-state"><strong>Could not load precipitation data.</strong><br><br>' + err.message + '<br><br>Visit <a href="https://www.ncei.noaa.gov" target="_blank" style="color:var(--blue)">NOAA NCEI</a> directly.</div>';
   }
 }
 
