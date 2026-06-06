@@ -365,8 +365,8 @@ async function loadData() {
             <div class="hourly-card ${h.hi === peakHI ? 'peak' : ''}">
               <div class="hourly-time">${h.time}</div>
               <div class="hourly-hi" style="color:${h.hi >= 103 ? '#E24B4A' : h.hi >= 91 ? '#D85A30' : h.hi >= 80 ? '#D4A017' : '#3B6D11'}">${h.hi}°</div>
-              <div class="hourly-wbgt">WBGT ${h.wbgt}°</div>
-              <div class="hourly-dot" style="background:${h.level.color}"></div>
+              <div class="hourly-wbgt" style="color:${h.level.color}">WBGT ${h.wbgt}°</div>
+              <div class="hourly-dot" style="background:${h.hi >= 103 ? '#E24B4A' : h.hi >= 91 ? '#D85A30' : h.hi >= 80 ? '#D4A017' : '#3B6D11'}"></div>
             </div>`).join('')}
         </div>
       </div>`;
