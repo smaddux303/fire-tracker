@@ -293,7 +293,7 @@ async function loadData() {
         <div class="big-card hi-card">
           <div class="big-card-header">Heat Index — Feels Like</div>
           <div class="big-card-body">
-            <div class="big-number" style="color:${heatIndex >= 103 ? '#E24B4A' : heatIndex >= 91 ? '#D85A30' : heatIndex >= 80 ? '#D4A017' : '#3B6D11'}">${heatIndex}°F</div>
+            <div class="big-number" style="color:var(--ash)">${heatIndex}°F</div>
             <div class="big-label">Actual temp: ${tempF}°F &bull; Humidity: ${Math.round(rh)}% &bull; ${desc}</div>
             <div class="big-label" style="margin-top:4px">Wind: ${windS} mph ${windD}</div>
           </div>
@@ -328,7 +328,7 @@ async function loadData() {
         </div>
         <div class="metric">
           <div class="metric-label">Peak HI (12h)</div>
-          <div class="metric-value" style="color:${peakHI >= 103 ? '#E24B4A' : peakHI >= 91 ? '#D85A30' : '#3B6D11'}">${peakHI}°</div>
+          <div class="metric-value">${peakHI}°</div>
           <div class="metric-unit">Next 12 hours</div>
         </div>
         <div class="metric">
@@ -364,9 +364,8 @@ async function loadData() {
           ${hourlyItems.map((h, i) => `
             <div class="hourly-card ${h.hi === peakHI ? 'peak' : ''}">
               <div class="hourly-time">${h.time}</div>
-              <div class="hourly-hi" style="color:${h.hi >= 103 ? '#E24B4A' : h.hi >= 91 ? '#D85A30' : h.hi >= 80 ? '#D4A017' : '#3B6D11'}">${h.hi}°</div>
-              <div class="hourly-wbgt" style="color:${h.level.color}">WBGT ${h.wbgt}°</div>
-              <div class="hourly-dot" style="background:${h.hi >= 103 ? '#E24B4A' : h.hi >= 91 ? '#D85A30' : h.hi >= 80 ? '#D4A017' : '#3B6D11'}"></div>
+              <div class="hourly-hi">${h.hi}°</div>
+              <div class="hourly-wbgt" style="color:${h.level.color};font-weight:600">WBGT ${h.wbgt}°</div>
             </div>`).join('')}
         </div>
       </div>`;
