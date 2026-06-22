@@ -456,6 +456,13 @@ async function loadAlerts() {
       }
     }
 
+    // Exclude fire weather alerts — those belong on the Fire Danger page
+    const FIRE_WEATHER_EXCLUDE = ['red flag', 'fire weather', 'fire danger', 'extreme fire'];
+    allAlerts = allAlerts.filter(a => {
+      const e = (a.properties.event || '').toLowerCase();
+      return !FIRE_WEATHER_EXCLUDE.some(kw => e.includes(kw));
+    });
+
     allAlerts.sort((a, b) => getSeverityRank(a.properties.event) - getSeverityRank(b.properties.event));
 
     document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
