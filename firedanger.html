@@ -523,7 +523,11 @@ const FIRE_ALERT_TYPES = [
   'Special Weather Statement'
 ];
 
-const FIRE_KEYWORDS = ['fire', 'red flag', 'wind', 'heat', 'humidity', 'dry', 'critical'];
+// Only match on event name, not description — avoids false positives from air quality alerts
+const FIRE_KEYWORDS = ['red flag', 'fire weather', 'fire danger', 'extreme fire'];
+
+// Explicitly exclude air quality and non-fire alerts
+const EXCLUDE_TYPES = ['air quality', 'smoke', 'ozone', 'aqi', 'dense fog', 'tornado', 'severe thunderstorm', 'flash flood', 'flood', 'winter storm', 'blizzard', 'ice storm', 'freeze', 'frost'];
 
 function classifyAlert(event) {
   const e = (event || '').toLowerCase();
@@ -558,13 +562,11 @@ function timeUntil(iso) {
 
 function isFireRelated(alert) {
   const eventLower = (alert.properties.event || '').toLowerCase();
-  const descLower  = (alert.properties.description || '').toLowerCase();
-  for (const kw of FIRE_KEYWORDS) {
-    if (eventLower.includes(kw) || descLower.includes(kw)) return true;
-  }
-  for (const t of FIRE_ALERT_TYPES) {
-    if (eventLower.includes(t.toLowerCase())) return true;
-  }
+  // Exclude non-fire alert types first
+  if (EXCLUDE_TYPES.some(kw => eventLower.includes(kw))) return false;
+  // Then check if it matches fire weather keywords or types
+  if (FIRE_KEYWORDS.some(kw => eventLower.includes(kw))) return true;
+  if (FIRE_ALERT_TYPES.some(t => eventLower.includes(t.toLowerCase()))) return true;
   return false;
 }
 
