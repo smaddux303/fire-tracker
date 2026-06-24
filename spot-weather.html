@@ -6,60 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Spot Weather — Westminster FD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Public+Sans:wght@400;500;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Public+Sans:wght@400;500;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
-
-/* ── WFD SHELL ─── */
-:root {
-  --wfd-black:#0c0c0d; --wfd-gold:#ffcc00; --wfd-maroon:#990033;
-  --gold-400:#ffcc00; --maroon-400:#990033;
-  --font-display:'Oswald','Arial Narrow',system-ui,sans-serif;
-  --font-sans-wfd:'Public Sans',system-ui,-apple-system,sans-serif;
-  --font-mono-wfd:'Roboto Mono',ui-monospace,monospace;
-  --text-2xs-wfd:0.6875rem; --text-xs-wfd:0.75rem; --text-sm-wfd:0.875rem;
-  --border-accent:3px;
-  --radius-md-wfd:6px; --radius-lg-wfd:10px;
-}
-.wfd-header{background:var(--wfd-black)!important;border-bottom:var(--border-accent) solid var(--wfd-maroon)!important;position:sticky;top:0;z-index:100;}
-.wfd-header-inner{max-width:960px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 1.1rem) 1.5rem 1rem;}
-.wfd-eyebrow{font-family:var(--font-display);font-size:.6875rem;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-400);margin-bottom:0.3rem;}
-.wfd-h1{font-family:var(--font-display);font-size:clamp(2.2rem,6vw,3.5rem);font-weight:700;line-height:0.95;letter-spacing:0.02em;text-transform:uppercase;color:#f5f5f6;}
-.wfd-h1 span{color:var(--gold-400);}
-.wfd-header-sub{margin-top:0.45rem;font-size:.875rem;color:rgba(255,255,255,.45);}
-.wfd-status-bar{max-width:960px;margin:0 auto;padding:0 1.5rem;}
-.wfd-pill{display:inline-flex;align-items:center;gap:8px;padding:.45rem 1rem;border-radius:0 0 10px 10px;font-family:var(--font-display);font-size:.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;}
-.wfd-pill.loading  {background:#faeeda;color:#633806;}
-.wfd-pill.low,.wfd-pill.good,.wfd-pill.none{background:#e7f4ec;color:#0e4d2a;}
-.wfd-pill.moderate {background:#fef4e3;color:#7a4b00;}
-.wfd-pill.high     {background:#fff3e0;color:#7e2c00;}
-.wfd-pill.extreme,.wfd-pill.severe{background:#fbe9ee;color:#66001f;}
-.wfd-pill.alert    {background:#fdeaeb;color:#7a0e17;}
-.wfd-pill.redflag  {background:#7f0000;color:#fff;}
-.wfd-pill.surplus  {background:#e8f0fa;color:#0e3a6e;}
-.wfd-pill.deficit  {background:#fffde7;color:#5d4037;}
-.wfd-pill.usg      {background:#fff3e0;color:#7e2c00;}
-.wfd-pill.unhealthy{background:#fdeaeb;color:#7a0e17;}
-.wfd-pill.very     {background:#f3e5f5;color:#4a0072;}
-.wfd-pill.hazardous{background:#4e0000;color:#ffccbc;}
-.wfd-pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:currentColor;}
-.wfd-pill.loading .wfd-pill-dot,.wfd-pill.extreme .wfd-pill-dot,.wfd-pill.alert .wfd-pill-dot,.wfd-pill.redflag .wfd-pill-dot{animation:wfd-pulse 1.2s infinite;}
-@keyframes wfd-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.4);}}
-.wfd-refresh-btn{font-family:var(--font-display);font-size:.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:var(--wfd-black);color:#f5f5f6;border:none;border-radius:6px;padding:.5rem 1rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .12s;}
-.wfd-refresh-btn:hover{background:var(--wfd-maroon);}
-.wfd-refresh-btn i{width:13px;height:13px;}
-.wfd-bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(12,12,13,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.08);padding:8px 0 calc(8px + env(safe-area-inset-bottom));display:none;align-items:center;justify-content:space-around;z-index:999;}
-.wfd-bottom-nav.active{display:flex;}
-.wfd-nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:rgba(255,255,255,.5);font-family:var(--font-display);font-size:.6rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:4px 18px;border-radius:6px;transition:color .12s;cursor:pointer;background:none;border:none;}
-.wfd-nav-btn:active{color:var(--gold-400);transform:scale(.92);}
-.wfd-nav-btn.home{color:var(--gold-400);}
-.wfd-nav-icon{width:20px;height:20px;margin-bottom:1px;}
-body.pwa-mode{padding-bottom:calc(64px + env(safe-area-inset-bottom))!important;}
-
 /* ── WFD DESIGN SYSTEM TOKENS ─────────────────────────── */
 :root {
   --wfd-black:   #0c0c0d;
@@ -563,11 +513,5 @@ if(window.lucide) lucide.createIcons();
   if(window.lucide) lucide.createIcons();
 })();
 </script>
-
-(function(){
-  var s=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
-  if(s){document.body.classList.add('pwa-mode');var n=document.getElementById('bottom-nav');if(n)n.classList.add('active');}
-  if(window.lucide) lucide.createIcons();
-})();
 </body>
 </html>
