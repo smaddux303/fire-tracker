@@ -4,285 +4,398 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Westminster Fire Department</title>
+
+<!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0D1B2A" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F9F6F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0c0d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="WestminsterFD">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- Fonts: Oswald (display), Public Sans (body), Roboto Mono (unit IDs) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Public+Sans:wght@400;500;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+
+<!-- Lucide icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
 <style>
-  :root { --radius: 14px; --radius-sm: 10px; }
+/* ── DESIGN SYSTEM TOKENS ─────────────────────────────── */
+:root {
+  --wfd-black:   #0c0c0d;
+  --wfd-gold:    #ffcc00;
+  --wfd-maroon:  #990033;
 
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #F9F6F1; --card: #FFFFFF; --card2: #F1EFE8;
-      --border: rgba(44,44,42,0.1); --text: #2C2C2A; --text2: #5F5E5A; --text3: #B4B2A9;
-      --header-bg: #0D1B2A; --header-text: #FFFFFF; --header-sub: rgba(255,255,255,0.55);
-    }
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0D1117; --card: #161B22; --card2: #1C2330;
-      --border: rgba(255,255,255,0.08); --text: #F0F0EE; --text2: #8B8B88; --text3: #555552;
-      --header-bg: #080D14; --header-text: #FFFFFF; --header-sub: rgba(255,255,255,0.4);
-    }
-  }
+  --gold-50:  #fff9e0; --gold-100: #fff0b0; --gold-200: #ffe478;
+  --gold-300: #ffd83f; --gold-400: #ffcc00; --gold-500: #e6b800;
+  --gold-600: #b88f00; --gold-700: #8a6a00;
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html { height: 100%; }
-  body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100%; padding-bottom: env(safe-area-inset-bottom); }
+  --maroon-50:  #fbe9ee; --maroon-100: #f3c0cf; --maroon-200: #e07f9c;
+  --maroon-300: #c54871; --maroon-400: #990033; --maroon-500: #800029;
+  --maroon-600: #66001f; --maroon-700: #4a0016;
 
-  .app-header { background: var(--header-bg); padding: calc(env(safe-area-inset-top) + 1.2rem) 1.4rem 1.2rem; position: sticky; top: 0; z-index: 100; }
-  .app-header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-  .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.04em; color: var(--header-text); line-height: 1; }
-  .app-title span { color: #F5C842; }
-  .app-sub { font-size: 11px; color: var(--header-sub); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
-  .app-clock { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: #F5C842; text-align: right; line-height: 1; }
-  .app-date { font-size: 10px; color: var(--header-sub); text-align: right; margin-top: 2px; }
+  --ink-900: #0c0c0d; --ink-800: #1c1c1f; --ink-700: #2b2b30;
+  --ink-600: #44444c; --ink-500: #61616b; --ink-400: #8a8a93;
+  --ink-300: #b6b6bd; --ink-200: #d6d6db; --ink-100: #e9e9ec;
+  --ink-50:  #f5f5f6; --paper:   #ffffff;
 
-  .shift-banner { padding: 10px 1.4rem; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--border); background: var(--header-bg); }
-  .shift-banner-left { display: flex; align-items: center; gap: 10px; }
-  .shift-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .shift-text { font-size: 13px; font-weight: 600; }
-  .shift-sub { font-size: 11px; color: var(--header-sub); }
-  .shift-next { font-size: 11px; color: var(--header-sub); text-align: right; }
+  --signal-emergency:    #d11f2d; --signal-emergency-bg: #fdeaeb;
+  --signal-warning:      #f5a623; --signal-warning-bg:   #fef4e3;
+  --signal-success:      #1f8a4c; --signal-success-bg:   #e7f4ec;
+  --signal-info:         #1f5fa8; --signal-info-bg:      #e8f0fa;
 
-  .content { padding: 1.2rem 1rem; }
-  .section { margin-bottom: 1.4rem; }
-  .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text3); font-weight: 600; margin-bottom: 0.7rem; padding-left: 4px; }
+  --surface-page:    var(--ink-50);
+  --surface-card:    var(--paper);
+  --surface-inverse: var(--wfd-black);
+  --surface-brand:   var(--maroon-400);
+  --text-strong:     var(--ink-900);
+  --text-body:       var(--ink-700);
+  --text-muted:      var(--ink-500);
+  --text-faint:      var(--ink-400);
+  --text-on-dark:    #f5f5f6;
+  --text-on-brand:   #ffffff;
+  --border-subtle:   var(--ink-200);
+  --border-default:  var(--ink-300);
 
-  .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  --font-display: 'Oswald', 'Arial Narrow', system-ui, sans-serif;
+  --font-sans:    'Public Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'Roboto Mono', ui-monospace, monospace;
 
-  .app-tile { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 14px 12px; text-decoration: none; color: var(--text); display: flex; flex-direction: column; gap: 6px; transition: transform 0.12s, opacity 0.12s; cursor: pointer; position: relative; overflow: hidden; }
-  .app-tile:active { transform: scale(0.96); opacity: 0.85; }
-  .app-tile-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-  .app-tile-icon { font-size: 1.6rem; line-height: 1; margin-bottom: 2px; }
-  .app-tile-name { font-size: 13px; font-weight: 600; line-height: 1.2; color: var(--text); }
-  .app-tile-desc { font-size: 11px; color: var(--text2); line-height: 1.3; }
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 10px; --radius-xl: 16px;
+  --border-accent: 3px;
+  --shadow-sm: 0 1px 3px rgba(12,12,13,.10), 0 1px 2px rgba(12,12,13,.06);
+  --shadow-md: 0 2px 6px rgba(12,12,13,.10), 0 4px 12px rgba(12,12,13,.08);
+  --ease-standard: cubic-bezier(0.2,0,0,1);
+  --dur-base: 200ms;
+}
 
-  .install-banner { background: var(--card2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 1.4rem; display: flex; align-items: center; gap: 12px; }
-  .install-banner-icon { font-size: 1.4rem; flex-shrink: 0; }
-  .install-banner-text { flex: 1; font-size: 12px; color: var(--text2); line-height: 1.5; }
-  .install-banner-text strong { color: var(--text); display: block; margin-bottom: 2px; }
-  .install-close { font-size: 18px; color: var(--text3); cursor: pointer; flex-shrink: 0; padding: 4px; }
+/* ── RESET ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body { font-family: var(--font-sans); background: var(--surface-page); color: var(--text-body); min-height: 100%; padding-bottom: env(safe-area-inset-bottom); }
 
-  .app-footer { text-align: center; padding: 1rem 1rem 0.5rem; font-size: 11px; color: var(--text3); }
+/* ── HEADER ────────────────────────────────────────────── */
+.app-header {
+  background: var(--wfd-black);
+  padding: calc(env(safe-area-inset-top) + 1rem) 1.25rem 1rem;
+  position: sticky; top: 0; z-index: 100;
+  border-bottom: var(--border-accent) solid var(--wfd-maroon);
+}
+.app-header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; max-width: 1100px; margin: 0 auto; }
+.app-brand { display: flex; align-items: center; gap: 10px; }
+.app-brand-badge { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
+.app-brand-text { }
+.app-brand-name { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-on-dark); line-height: 1; }
+.app-brand-sub { font-size: 0.625rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-400); margin-top: 2px; font-family: var(--font-display); font-weight: 400; }
+.app-clock-wrap { text-align: right; }
+.app-clock { font-family: var(--font-mono); font-size: 1.25rem; color: var(--gold-400); line-height: 1; }
+.app-date  { font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-top: 3px; font-family: var(--font-display); }
 
-  /* ── ALERT BANNERS ── */
-  .alert-banners { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.2rem; }
-  .alert-banner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid transparent;
-    text-decoration: none;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .alert-banner:active { opacity: 0.8; }
-  .alert-banner-icon { font-size: 1.2rem; flex-shrink: 0; }
-  .alert-banner-text { flex: 1; }
-  .alert-banner-title { font-size: 13px; font-weight: 600; line-height: 1.2; }
-  .alert-banner-sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
-  .alert-banner-arrow { font-size: 14px; opacity: 0.6; flex-shrink: 0; }
+/* ── SHIFT BANNER ──────────────────────────────────────── */
+.shift-banner {
+  background: var(--wfd-black);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 8px 1.25rem;
+}
+.shift-banner-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.shift-banner-left { display: flex; align-items: center; gap: 10px; }
+.shift-indicator { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.shift-label { font-family: var(--font-display); font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+.shift-sub   { font-size: 0.7rem; color: rgba(255,255,255,.4); margin-top: 1px; font-family: var(--font-sans); }
+.shift-next  { font-size: 0.7rem; color: rgba(255,255,255,.4); text-align: right; font-family: var(--font-sans); line-height: 1.4; }
+.shift-next strong { font-weight: 600; }
 
-  .alert-banner.danger  { background: #FCEBEB; border-color: rgba(226,75,74,0.3);  color: #791F1F; }
-  .alert-banner.warning { background: #FAEEDA; border-color: rgba(186,117,23,0.3); color: #633806; }
-  .alert-banner.flood   { background: #E6F1FB; border-color: rgba(55,138,221,0.3); color: #0C447C; }
-  .alert-banner.fire    { background: #FAECE7; border-color: rgba(216,90,48,0.3);  color: #4A1B0C; }
+/* ── ALERT BANNERS ─────────────────────────────────────── */
+.alert-banners { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.25rem; }
+.alert-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: var(--radius-lg);
+  border-left: var(--border-accent) solid transparent;
+  text-decoration: none; cursor: pointer;
+  transition: opacity var(--dur-base) var(--ease-standard);
+  box-shadow: var(--shadow-sm);
+}
+.alert-banner:active { opacity: .85; }
+.alert-banner-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.alert-banner-text { flex: 1; }
+.alert-banner-title { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.2; }
+.alert-banner-sub   { font-size: 0.7rem; opacity: .75; margin-top: 2px; }
+.alert-banner-arrow { font-size: 12px; opacity: .5; flex-shrink: 0; }
+.alert-banner.danger  { background: var(--signal-emergency-bg); border-color: var(--signal-emergency); color: #7a0e17; }
+.alert-banner.warning { background: var(--signal-warning-bg);   border-color: var(--signal-warning);   color: #7a4b00; }
+.alert-banner.flood   { background: var(--signal-info-bg);      border-color: var(--signal-info);      color: #0e3a6e; }
+.alert-banner.fire    { background: var(--maroon-50);           border-color: var(--maroon-400);        color: var(--maroon-600); }
 
-  @media (prefers-color-scheme: dark) {
-    .alert-banner.danger  { background: rgba(226,75,74,0.15);  border-color: rgba(226,75,74,0.3);  color: #FF8A80; }
-    .alert-banner.warning { background: rgba(186,117,23,0.15); border-color: rgba(186,117,23,0.3); color: #FFD180; }
-    .alert-banner.flood   { background: rgba(55,138,221,0.15); border-color: rgba(55,138,221,0.3); color: #82B1FF; }
-    .alert-banner.fire    { background: rgba(216,90,48,0.15);  border-color: rgba(216,90,48,0.3);  color: #FF9E80; }
-  }
+/* ── CONTENT ───────────────────────────────────────────── */
+.content { padding: 1.25rem; max-width: 1100px; margin: 0 auto; }
 
-  @media (min-width: 768px) {
-    .app-header { padding: calc(env(safe-area-inset-top) + 1.4rem) 2.5rem 1.4rem; }
-    .app-title { font-size: 2.2rem; }
-    .app-clock { font-size: 2rem; }
-    .shift-banner { padding: 12px 2.5rem; }
-    .shift-text { font-size: 15px; }
-    .shift-sub, .shift-next { font-size: 13px; }
-    .content { padding: 1.8rem 2rem; max-width: 900px; margin: 0 auto; }
-    .section-title { font-size: 12px; }
-    .app-grid { grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-    .app-tile { padding: 20px 18px 16px; }
-    .app-tile-icon { font-size: 2.2rem; }
-    .app-tile-name { font-size: 15px; }
-    .app-tile-desc { font-size: 12px; }
-  }
-  @media (min-width: 1024px) {
-    .content { max-width: 1100px; padding: 2rem 2.5rem; }
-    .app-grid { grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
-    .app-tile-icon { font-size: 2.4rem; }
-    .app-tile-name { font-size: 16px; }
-    .app-tile-desc { font-size: 13px; }
-  }
+/* ── SECTION ───────────────────────────────────────────── */
+.section { margin-bottom: 1.5rem; }
+.section-eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+  padding-left: 2px;
+  display: flex; align-items: center; gap: 6px;
+}
+.section-eyebrow::before {
+  content: '';
+  display: block;
+  width: 16px; height: 2px;
+  background: var(--wfd-maroon);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* ── APP GRID ──────────────────────────────────────────── */
+.app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── APP TILE ──────────────────────────────────────────── */
+.app-tile {
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  border-top: var(--border-accent) solid var(--wfd-maroon);
+  padding: 14px 14px 12px;
+  text-decoration: none;
+  color: var(--text-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-base) var(--ease-standard), transform var(--dur-base) var(--ease-standard);
+}
+.app-tile:active { transform: translateY(1px); box-shadow: none; }
+.app-tile-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.app-tile-icon {
+  width: 20px; height: 20px;
+  color: var(--maroon-400);
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+.app-tile-name {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-strong);
+  line-height: 1.15;
+}
+.app-tile-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  font-family: var(--font-sans);
+}
+
+/* ── INSTALL BANNER ────────────────────────────────────── */
+.install-banner {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-left: var(--border-accent) solid var(--gold-400);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  margin-bottom: 1.25rem;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.install-banner-icon { width: 20px; height: 20px; color: var(--gold-600); flex-shrink: 0; }
+.install-banner-text { flex: 1; font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+.install-banner-text strong { color: var(--text-strong); display: block; margin-bottom: 1px; font-family: var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.75rem; }
+.install-close { font-size: 16px; color: var(--text-faint); cursor: pointer; flex-shrink: 0; padding: 4px; line-height: 1; }
+
+/* ── FOOTER ────────────────────────────────────────────── */
+.app-footer {
+  text-align: center;
+  padding: 1rem 1.25rem 0.5rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-family: var(--font-display);
+}
+
+/* ── RESPONSIVE ────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .app-header { padding: calc(env(safe-area-inset-top) + 1.2rem) 2rem 1.2rem; }
+  .app-brand-name { font-size: 1.2rem; }
+  .app-clock { font-size: 1.5rem; }
+  .shift-banner { padding: 10px 2rem; }
+  .content { padding: 1.8rem 2rem; }
+  .app-grid { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .app-tile { padding: 18px 16px 14px; }
+  .app-tile-icon { width: 22px; height: 22px; }
+  .app-tile-name { font-size: 0.9rem; }
+  .app-tile-desc { font-size: 0.75rem; }
+}
+@media (min-width: 1024px) {
+  .content { max-width: 1100px; padding: 2rem 2.5rem; }
+  .app-grid { grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+}
 </style>
 </head>
 <body>
 
-<div class="app-header">
+<!-- HEADER -->
+<header class="app-header">
   <div class="app-header-inner">
-    <div>
-      <div class="app-title">Westminster <span>Fire</span></div>
-      <div class="app-sub">Situational Awareness</div>
+    <div class="app-brand">
+      <img class="app-brand-badge" src="apple-touch-icon.png" alt="WFD Badge">
+      <div class="app-brand-text">
+        <div class="app-brand-name">Westminster Fire</div>
+        <div class="app-brand-sub">Situational Awareness</div>
+      </div>
     </div>
-    <div>
+    <div class="app-clock-wrap">
       <div class="app-clock" id="clock">—</div>
-      <div class="app-date" id="date-display">—</div>
+      <div class="app-date"  id="date-display">—</div>
     </div>
   </div>
-</div>
+</header>
 
+<!-- SHIFT BANNER -->
 <div class="shift-banner">
-  <div class="shift-banner-left">
-    <div class="shift-dot" id="shift-dot"></div>
-    <div>
-      <div class="shift-text" id="shift-text">Loading…</div>
-      <div class="shift-sub" id="shift-sub"></div>
+  <div class="shift-banner-inner">
+    <div class="shift-banner-left">
+      <div class="shift-indicator" id="shift-dot"></div>
+      <div>
+        <div class="shift-label" id="shift-text">Loading…</div>
+        <div class="shift-sub"  id="shift-sub"></div>
+      </div>
     </div>
+    <div class="shift-next" id="shift-next"></div>
   </div>
-  <div class="shift-next" id="shift-next"></div>
 </div>
 
 <div class="content">
 
+  <!-- INSTALL PROMPT -->
   <div class="install-banner" id="install-banner" style="display:none">
-    <div class="install-banner-icon">📲</div>
+    <i data-lucide="smartphone" class="install-banner-icon"></i>
     <div class="install-banner-text">
       <strong>Add to Home Screen</strong>
-      Tap the Share button → "Add to Home Screen" to install this app on your iPhone.
+      Tap Share → "Add to Home Screen" to install this app on your iPhone.
     </div>
-    <div class="install-close" onclick="dismissInstall()">✕</div>
+    <span class="install-close" onclick="dismissInstall()">✕</span>
   </div>
 
   <!-- ALERT BANNERS -->
   <div class="alert-banners" id="alert-banners" style="display:none"></div>
 
+  <!-- WEATHER & ALERTS -->
   <div class="section">
-    <div class="section-title">Weather & Alerts</div>
+    <div class="section-eyebrow">Weather &amp; Alerts</div>
     <div class="app-grid">
       <a class="app-tile" href="spot-weather.html">
-        <div class="app-tile-accent" style="background:#7EC8E3"></div>
-        <div class="app-tile-icon">🌤️</div>
+        <i data-lucide="cloud-sun" class="app-tile-icon"></i>
         <div class="app-tile-name">Spot Weather</div>
-        <div class="app-tile-desc">Fire weather index & 7-day outlook</div>
+        <div class="app-tile-desc">Fire weather index &amp; 7-day outlook</div>
       </a>
       <a class="app-tile" href="firedanger.html">
-        <div class="app-tile-accent" style="background:#D85A30"></div>
-        <div class="app-tile-icon">🔥</div>
+        <i data-lucide="flame" class="app-tile-icon"></i>
         <div class="app-tile-name">Fire Danger</div>
-        <div class="app-tile-desc">Red flag warnings & fire weather alerts</div>
+        <div class="app-tile-desc">Red flag warnings &amp; fire weather alerts</div>
       </a>
       <a class="app-tile" href="weather.html">
-        <div class="app-tile-accent" style="background:#378ADD"></div>
-        <div class="app-tile-icon">⛈</div>
+        <i data-lucide="cloud-lightning" class="app-tile-icon"></i>
         <div class="app-tile-name">Severe Weather</div>
-        <div class="app-tile-desc">Hail, tornado, flood & wind alerts</div>
+        <div class="app-tile-desc">Hail, tornado, flood &amp; wind alerts</div>
       </a>
       <a class="app-tile" href="uv-index.html">
-        <div class="app-tile-accent" style="background:#7E57C2"></div>
-        <div class="app-tile-icon">☀️</div>
+        <i data-lucide="sun" class="app-tile-icon"></i>
         <div class="app-tile-name">UV Index</div>
-        <div class="app-tile-desc">7-day UV forecast & protection guide</div>
+        <div class="app-tile-desc">7-day UV forecast &amp; protection guide</div>
       </a>
       <a class="app-tile" href="rehab-heat.html">
-        <div class="app-tile-accent" style="background:#D85A30"></div>
-        <div class="app-tile-icon">🌡️</div>
+        <i data-lucide="thermometer-sun" class="app-tile-icon"></i>
         <div class="app-tile-name">Rehab Heat</div>
-        <div class="app-tile-desc">WBGT & NFPA 1584 rehab levels</div>
+        <div class="app-tile-desc">WBGT &amp; NFPA 1584 rehab levels</div>
       </a>
       <a class="app-tile" href="air-quality.html">
-        <div class="app-tile-accent" style="background:#62C6F2"></div>
-        <div class="app-tile-icon">🌫️</div>
+        <i data-lucide="wind" class="app-tile-icon"></i>
         <div class="app-tile-name">Air Quality</div>
-        <div class="app-tile-desc">AQI & smoke conditions — AirNow</div>
+        <div class="app-tile-desc">AQI &amp; smoke conditions — AirNow</div>
       </a>
     </div>
   </div>
 
+  <!-- FIRE RISK -->
   <div class="section">
-    <div class="section-title">Fire Risk</div>
+    <div class="section-eyebrow">Fire Risk</div>
     <div class="app-grid">
       <a class="app-tile" href="burnban.html">
-        <div class="app-tile-accent" style="background:#BA7517"></div>
-        <div class="app-tile-icon">🚫</div>
+        <i data-lucide="ban" class="app-tile-icon"></i>
         <div class="app-tile-name">Burn Ban</div>
-        <div class="app-tile-desc">Jefferson, Adams & Westminster restrictions</div>
+        <div class="app-tile-desc">Jefferson, Adams &amp; Westminster restrictions</div>
       </a>
       <a class="app-tile" href="wildfires.html">
-        <div class="app-tile-accent" style="background:#D85A30"></div>
-        <div class="app-tile-icon">🔥</div>
+        <i data-lucide="flame" class="app-tile-icon"></i>
         <div class="app-tile-name">Active Wildfires</div>
         <div class="app-tile-desc">Colorado region — NIFC live data</div>
       </a>
       <a class="app-tile" href="precip-deficit.html">
-        <div class="app-tile-accent" style="background:#62B8D4"></div>
-        <div class="app-tile-icon">💧</div>
+        <i data-lucide="droplets" class="app-tile-icon"></i>
         <div class="app-tile-name">Precip Deficit</div>
-        <div class="app-tile-desc">Dryness, drought & fuel moisture</div>
+        <div class="app-tile-desc">Dryness, drought &amp; fuel moisture</div>
       </a>
     </div>
   </div>
 
+  <!-- OPERATIONS -->
   <div class="section">
-    <div class="section-title">Operations</div>
+    <div class="section-eyebrow">Operations</div>
     <div class="app-grid">
       <a class="app-tile" href="shift-display.html">
-        <div class="app-tile-accent" style="background:#F5C842"></div>
-        <div class="app-tile-icon">🚒</div>
+        <i data-lucide="truck" class="app-tile-icon"></i>
         <div class="app-tile-name">Shift Display</div>
-        <div class="app-tile-desc">Apparatus status & station notes</div>
+        <div class="app-tile-desc">Apparatus status &amp; station notes</div>
       </a>
       <a class="app-tile" href="dashboard.html">
-        <div class="app-tile-accent" style="background:#4CAF7D"></div>
-        <div class="app-tile-icon">📺</div>
+        <i data-lucide="layout-dashboard" class="app-tile-icon"></i>
         <div class="app-tile-name">Station Dashboard</div>
         <div class="app-tile-desc">All-in-one station display</div>
       </a>
       <a class="app-tile" href="road-conditions.html">
-        <div class="app-tile-accent" style="background:#F5C842"></div>
-        <div class="app-tile-icon">🚦</div>
+        <i data-lucide="traffic-cone" class="app-tile-icon"></i>
         <div class="app-tile-name">Road Conditions</div>
-        <div class="app-tile-desc">CDOT live incidents & closures</div>
+        <div class="app-tile-desc">CDOT live incidents &amp; closures</div>
       </a>
       <a class="app-tile" href="stream-gauges.html">
-        <div class="app-tile-accent" style="background:#5BC4F5"></div>
-        <div class="app-tile-icon">🌊</div>
+        <i data-lucide="waves" class="app-tile-icon"></i>
         <div class="app-tile-name">Stream Gauges</div>
-        <div class="app-tile-desc">Clear Creek, Big Dry Creek & tributaries</div>
+        <div class="app-tile-desc">Clear Creek, Big Dry Creek &amp; tributaries</div>
       </a>
     </div>
   </div>
 
 </div>
 
-<div class="app-footer">Westminster Fire Department • v1.0</div>
+<div class="app-footer">Westminster Fire Rescue &bull; Westminster, CO &bull; Est. 1934</div>
 
 <script>
-// Clock
+// ── CLOCK ──────────────────────────────────────────────
 function updateClock() {
   var now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
-  document.getElementById('date-display').textContent = now.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  document.getElementById('date-display').textContent = now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 setInterval(updateClock, 1000);
 updateClock();
 
-// Shift calculation — B shift started May 19 2025 at 0700, rotation B→A→C, 48hrs each
-var ANCHOR    = new Date('2026-05-19T13:00:00Z'); // 0700 MDT = 1300 UTC
-var NAMES     = ['B', 'A', 'C'];
-var COLORS    = {A: '#FFFFFF', B: '#E24B4A', C: '#4CAF7D'};
-var CYCLE_MS  = 48 * 60 * 60 * 1000;
-var FULL_MS   = 144 * 60 * 60 * 1000;
+// ── SHIFT CALCULATION ───────────────────────────────────
+var ANCHOR   = new Date('2026-05-19T13:00:00Z');
+var NAMES    = ['B','A','C'];
+var COLORS   = {A:'#2b2b30', B:'#990033', C:'#1f8a4c'};
+var CYCLE_MS = 48 * 60 * 60 * 1000;
+var FULL_MS  = 144 * 60 * 60 * 1000;
 
 function getShiftInfo(now) {
   var elapsed = now - ANCHOR;
@@ -294,7 +407,7 @@ function getShiftInfo(now) {
 }
 
 function fmtDate(d) {
-  return d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 
 function updateShiftBanner() {
@@ -302,143 +415,112 @@ function updateShiftBanner() {
   var cur = getShiftInfo(now);
   var nxt = getShiftInfo(new Date(cur.end.getTime() + 1000));
   var color = COLORS[cur.name];
-
-  document.getElementById('shift-dot').style.background = color;
-  document.getElementById('shift-text').textContent     = cur.name + ' Shift On Duty';
-  document.getElementById('shift-text').style.color     = color;
-  document.getElementById('shift-sub').textContent      = 'On duty until ' + fmtDate(cur.end) + ' at 0700';
-  document.getElementById('shift-next').innerHTML       = 'Next: <strong style="color:' + COLORS[nxt.name] + '">' + nxt.name + ' Shift</strong><br>' + fmtDate(nxt.start);
+  document.getElementById('shift-dot').style.background  = color;
+  document.getElementById('shift-text').textContent      = cur.name + ' Shift On Duty';
+  document.getElementById('shift-text').style.color      = color;
+  document.getElementById('shift-sub').textContent       = 'On duty until ' + fmtDate(cur.end) + ' at 0700';
+  document.getElementById('shift-next').innerHTML        = 'Next: <strong style="color:' + COLORS[nxt.name] + '">' + nxt.name + ' Shift</strong><br>' + fmtDate(nxt.start);
 }
 updateShiftBanner();
 
-// ── ALERT BANNERS ─────────────────────────────────
-const NWS_ZONES   = ['COZ040','COZ038','COC001','COC059'];
-const BURN_LEVELS = ['stage1','stage2','stage3','total'];
-const GAUGE_SITES = ['06719505','06720820'];
-const GAUGE_ACTION= {'06719505':6.5,'06720820':4.0};
-const GAUGE_FLOOD = {'06719505':9.0,'06720820':6.0};
-
-const FIRE_KW = ['red flag','fire weather','tornado','severe thunderstorm','flash flood','flood warning','blizzard','winter storm','excessive heat','high wind','ice storm'];
+// ── ALERT BANNERS ───────────────────────────────────────
+var NWS_ZONES    = ['COZ040','COZ038','COC001','COC059'];
+var GAUGE_SITES  = ['06719505','06720820'];
+var GAUGE_ACTION = {'06719505':6.5,'06720820':4.0};
+var GAUGE_FLOOD  = {'06719505':9.0,'06720820':6.0};
+var BURN_LEVELS  = ['stage1','stage2','stage3','total'];
+var FIRE_KW      = ['red flag','fire weather','tornado','severe thunderstorm','flash flood','flood warning','blizzard','winter storm','excessive heat','high wind','ice storm'];
+var BIN_ID       = '6a0ca0e6ee5a733b12e69903';
+var MASTER_KEY   = '$2a$10$AmSubp9/w6PuIlI6TPzuu.oDt3nlAY/4VL30jINVp2iZuvguywN2.';
 
 async function checkAlerts() {
   var banners = [];
 
-  // 1. Check NWS alerts
+  // NWS alerts
   try {
-    var seen = {};
-    var alerts = [];
+    var seen = {}; var alerts = [];
     await Promise.all(NWS_ZONES.map(function(zone) {
       return fetch('https://api.weather.gov/alerts/active?zone=' + zone, {headers:{'User-Agent':'WestminsterFDHub/1.0'}})
         .then(function(r){return r.json();})
-        .then(function(d){
-          (d.features||[]).forEach(function(f){
-            if(!seen[f.id]) { seen[f.id]=1; alerts.push(f); }
-          });
-        }).catch(function(){});
+        .then(function(d){(d.features||[]).forEach(function(f){if(!seen[f.id]){seen[f.id]=1;alerts.push(f);}});})
+        .catch(function(){});
     }));
-
-    var fireAlerts = alerts.filter(function(a){
-      var e = (a.properties.event||'').toLowerCase();
-      return FIRE_KW.some(function(k){return e.includes(k);});
-    });
-
-    // Group by type
-    var rfws   = fireAlerts.filter(function(a){return (a.properties.event||'').toLowerCase().includes('red flag');});
+    var fireAlerts = alerts.filter(function(a){ var e=(a.properties.event||'').toLowerCase(); return FIRE_KW.some(function(k){return e.includes(k);}); });
+    var rfws    = fireAlerts.filter(function(a){return (a.properties.event||'').toLowerCase().includes('red flag');});
     var tornado = fireAlerts.filter(function(a){return (a.properties.event||'').toLowerCase().includes('tornado');});
     var severe  = fireAlerts.filter(function(a){return (a.properties.event||'').toLowerCase().includes('severe thunderstorm');});
     var flood   = fireAlerts.filter(function(a){var e=(a.properties.event||'').toLowerCase();return e.includes('flood');});
     var heat    = fireAlerts.filter(function(a){var e=(a.properties.event||'').toLowerCase();return e.includes('heat');});
     var wind    = fireAlerts.filter(function(a){var e=(a.properties.event||'').toLowerCase();return e.includes('wind');});
     var winter  = fireAlerts.filter(function(a){var e=(a.properties.event||'').toLowerCase();return e.includes('blizzard')||e.includes('winter storm')||e.includes('ice storm');});
-
-    if (tornado.length)  banners.push({type:'danger',  icon:'🌪️', title: tornado[0].properties.event,  sub:'Adams & Jefferson Counties', href:'weather.html'});
-    if (rfws.length)     banners.push({type:'fire',    icon:'🔥', title: rfws[0].properties.event,     sub:'Fire weather alert active',  href:'firedanger.html'});
-    if (severe.length)   banners.push({type:'warning', icon:'⛈', title: severe[0].properties.event,   sub: severe.length + ' alert' + (severe.length>1?'s':'') + ' active', href:'weather.html'});
-    if (flood.length)    banners.push({type:'flood',   icon:'🌊', title: flood[0].properties.event,    sub: flood.length + ' alert' + (flood.length>1?'s':'') + ' active',  href:'weather.html'});
-    if (heat.length)     banners.push({type:'danger',  icon:'🌡️', title: heat[0].properties.event,     sub:'Heat alert active',          href:'rehab-heat.html'});
-    if (wind.length)     banners.push({type:'warning', icon:'💨', title: wind[0].properties.event,     sub:'Wind alert active',          href:'weather.html'});
-    if (winter.length)   banners.push({type:'flood',   icon:'❄️', title: winter[0].properties.event,   sub:'Winter weather alert',       href:'weather.html'});
+    if(tornado.length) banners.push({type:'danger',  icon:'alert-triangle', title:tornado[0].properties.event, sub:'Adams & Jefferson Counties', href:'weather.html'});
+    if(rfws.length)    banners.push({type:'fire',    icon:'flame',          title:rfws[0].properties.event,    sub:'Fire weather alert active',  href:'firedanger.html'});
+    if(severe.length)  banners.push({type:'warning', icon:'cloud-lightning', title:severe[0].properties.event,  sub:severe.length+' alert'+(severe.length>1?'s':'')+' active', href:'weather.html'});
+    if(flood.length)   banners.push({type:'flood',   icon:'waves',          title:flood[0].properties.event,   sub:flood.length+' alert'+(flood.length>1?'s':'')+' active',  href:'weather.html'});
+    if(heat.length)    banners.push({type:'danger',  icon:'thermometer-sun',title:heat[0].properties.event,    sub:'Heat alert active',          href:'rehab-heat.html'});
+    if(wind.length)    banners.push({type:'warning', icon:'wind',           title:wind[0].properties.event,    sub:'Wind alert active',          href:'weather.html'});
+    if(winter.length)  banners.push({type:'flood',   icon:'snowflake',      title:winter[0].properties.event,  sub:'Winter weather alert',       href:'weather.html'});
   } catch(e) {}
 
-  // 2. Check burn ban status from JSONbin
+  // Burn ban
   try {
-    var res  = await fetch('https://api.jsonbin.io/v3/b/' + '6a0ca0e6ee5a733b12e69903' + '/latest', {headers:{'X-Master-Key':'$2a$10$AmSubp9/w6PuIlI6TPzuu.oDt3nlAY/4VL30jINVp2iZuvguywN2.'}});
-    var json = await res.json();
-    var d    = json.record;
-    var areas = [
-      {key:'jefferson',    name:'Jefferson County'},
-      {key:'adams',        name:'Adams County'},
-      {key:'westminster',  name:'City of Westminster'},
-    ];
-    var active = areas.filter(function(a){ return BURN_LEVELS.includes((d[a.key]||{}).level); });
-    if (active.length > 0) {
-      var worst = active.find(function(a){return (d[a.key]||{}).level==='total';})
-               || active.find(function(a){return (d[a.key]||{}).level==='stage3';})
-               || active.find(function(a){return (d[a.key]||{}).level==='stage2';})
-               || active[0];
-      var status = (d[worst.key]||{}).status || 'Restrictions in effect';
-      banners.push({type:'fire', icon:'🚫', title: worst.name + ': ' + status, sub: active.length + ' area' + (active.length>1?'s have':' has') + ' active burn restrictions', href:'burnban.html'});
+    var res  = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{headers:{'X-Master-Key':MASTER_KEY}});
+    var json = await res.json(); var d = json.record;
+    var areas = [{key:'jefferson',name:'Jefferson County'},{key:'adams',name:'Adams County'},{key:'westminster',name:'City of Westminster'}];
+    var active = areas.filter(function(a){return BURN_LEVELS.includes((d[a.key]||{}).level);});
+    if(active.length>0){
+      var worst=active.find(function(a){return(d[a.key]||{}).level==='total';})||active.find(function(a){return(d[a.key]||{}).level==='stage3';})||active.find(function(a){return(d[a.key]||{}).level==='stage2';})||active[0];
+      banners.push({type:'fire',icon:'ban',title:worst.name+': '+((d[worst.key]||{}).status||'Restrictions in effect'),sub:active.length+' area'+(active.length>1?'s have':' has')+' active burn restrictions',href:'burnban.html'});
     }
   } catch(e) {}
 
-  // 3. Check stream gauges
+  // Stream gauges
   try {
-    var sites = GAUGE_SITES.join(',');
-    var gRes  = await fetch('https://waterservices.usgs.gov/nwis/iv/?sites=' + sites + '&parameterCd=00065&format=json');
+    var gRes  = await fetch('https://waterservices.usgs.gov/nwis/iv/?sites='+GAUGE_SITES.join(',')+'&parameterCd=00065&format=json');
     var gData = await gRes.json();
-    var elevated = [], flooded = [];
+    var elevated=[], flooded=[];
     (gData.value.timeSeries||[]).forEach(function(ts){
-      var siteNo = ts.sourceInfo.siteCode[0].value;
-      var vals   = (ts.values[0].value||[]);
-      var latest = vals[vals.length-1];
-      if (!latest) return;
-      var stage  = parseFloat(latest.value);
-      if (isNaN(stage)) return;
-      if (stage >= GAUGE_FLOOD[siteNo])  flooded.push(ts.sourceInfo.siteName);
-      else if (stage >= GAUGE_ACTION[siteNo]) elevated.push(ts.sourceInfo.siteName);
+      var siteNo=ts.sourceInfo.siteCode[0].value;
+      var vals=(ts.values[0].value||[]);
+      var latest=vals[vals.length-1];
+      if(!latest) return;
+      var stage=parseFloat(latest.value);
+      if(isNaN(stage)) return;
+      var name=ts.sourceInfo.siteName.split(' at ')[0];
+      if(stage>=GAUGE_FLOOD[siteNo]) flooded.push(name);
+      else if(stage>=GAUGE_ACTION[siteNo]) elevated.push(name);
     });
-    if (flooded.length)   banners.push({type:'danger', icon:'🌊', title:'Flood Stage — ' + flooded[0].split(' at ')[0],   sub: flooded.length + ' gauge' + (flooded.length>1?'s':'') + ' at or above flood stage',    href:'stream-gauges.html'});
-    else if (elevated.length) banners.push({type:'flood', icon:'🌊', title:'Elevated — ' + elevated[0].split(' at ')[0], sub: elevated.length + ' gauge' + (elevated.length>1?'s':'') + ' above action stage', href:'stream-gauges.html'});
+    if(flooded.length)   banners.push({type:'danger',icon:'waves',title:'Flood Stage — '+flooded[0],   sub:flooded.length+' gauge'+(flooded.length>1?'s':'')+' at or above flood stage',    href:'stream-gauges.html'});
+    else if(elevated.length) banners.push({type:'flood',icon:'waves',title:'Elevated — '+elevated[0],  sub:elevated.length+' gauge'+(elevated.length>1?'s':'')+' above action stage', href:'stream-gauges.html'});
   } catch(e) {}
 
-  // Render banners
   var container = document.getElementById('alert-banners');
-  if (banners.length === 0) {
-    container.style.display = 'none';
-    return;
-  }
-  container.style.display = 'flex';
-  container.innerHTML = banners.map(function(b) {
-    return '<a class="alert-banner ' + b.type + '" href="' + b.href + '">' +
-      '<div class="alert-banner-icon">' + b.icon + '</div>' +
-      '<div class="alert-banner-text">' +
-        '<div class="alert-banner-title">' + b.title + '</div>' +
-        '<div class="alert-banner-sub">' + b.sub + '</div>' +
-      '</div>' +
-      '<div class="alert-banner-arrow">→</div>' +
+  if(banners.length===0){ container.style.display='none'; return; }
+  container.style.display='flex';
+  container.innerHTML = banners.map(function(b){
+    return '<a class="alert-banner '+b.type+'" href="'+b.href+'">' +
+      '<i data-lucide="'+b.icon+'" class="alert-banner-icon"></i>' +
+      '<div class="alert-banner-text"><div class="alert-banner-title">'+b.title+'</div><div class="alert-banner-sub">'+b.sub+'</div></div>' +
+      '<span class="alert-banner-arrow">&#8250;</span>' +
     '</a>';
   }).join('');
+  if(window.lucide) lucide.createIcons();
 }
 
 checkAlerts();
-setInterval(checkAlerts, 10 * 60 * 1000);
+setInterval(checkAlerts, 10*60*1000);
 
-// Install prompt
-function isStandalone() {
-  return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-}
-if (!isStandalone() && !localStorage.getItem('installDismissed')) {
-  document.getElementById('install-banner').style.display = 'flex';
-}
-function dismissInstall() {
-  document.getElementById('install-banner').style.display = 'none';
-  localStorage.setItem('installDismissed', '1');
-}
+// ── INSTALL PROMPT ──────────────────────────────────────
+function isStandalone(){ return window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches; }
+if(!isStandalone()&&!localStorage.getItem('installDismissed')){ document.getElementById('install-banner').style.display='flex'; }
+function dismissInstall(){ document.getElementById('install-banner').style.display='none'; localStorage.setItem('installDismissed','1'); }
 
-// Service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(function() {});
-}
+// ── SERVICE WORKER ──────────────────────────────────────
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
+
+// ── LUCIDE ICONS ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){ if(window.lucide) lucide.createIcons(); });
+if(window.lucide) lucide.createIcons();
 </script>
 </body>
 </html>
