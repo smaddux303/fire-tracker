@@ -6,9 +6,41 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Road Conditions — Westminster FD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Public+Sans:wght@400;500;600&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+
+/* ── WFD SHELL ─── */
+:root {
+  --wfd-black:#0c0c0d; --wfd-gold:#ffcc00; --wfd-maroon:#990033;
+  --gold-400:#ffcc00; --maroon-400:#990033;
+  --font-display:'Oswald','Arial Narrow',system-ui,sans-serif;
+  --border-accent:3px;
+  --radius-md-wfd:6px; --radius-lg-wfd:10px;
+}
+.wfd-header{background:var(--wfd-black)!important;border-bottom:var(--border-accent) solid var(--wfd-maroon)!important;position:sticky;top:0;z-index:100;}
+.wfd-header-inner{max-width:900px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 1.1rem) 1.5rem 1rem;}
+.wfd-eyebrow{font-family:var(--font-display);font-size:.6875rem;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold-400);margin-bottom:0.3rem;}
+.wfd-h1{font-family:var(--font-display);font-size:clamp(2.2rem,6vw,3.5rem);font-weight:700;line-height:0.95;letter-spacing:0.02em;text-transform:uppercase;color:#f5f5f6;}
+.wfd-h1 span{color:var(--gold-400);}
+.wfd-header-sub{margin-top:0.45rem;font-size:.875rem;color:rgba(255,255,255,.45);}
+.wfd-status-bar{max-width:900px;margin:0 auto;padding:0 1.5rem;}
+.wfd-pill{display:inline-flex;align-items:center;gap:8px;padding:.45rem 1rem;border-radius:0 0 10px 10px;font-family:var(--font-display);font-size:.75rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:#fff9db;color:#7a5c00;}
+.wfd-pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:currentColor;}
+.wfd-refresh-btn{font-family:var(--font-display);font-size:.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:var(--wfd-black);color:#f5f5f6;border:none;border-radius:6px;padding:.5rem 1rem;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .12s;}
+.wfd-refresh-btn:hover{background:var(--wfd-maroon);}
+.wfd-refresh-btn i{width:13px;height:13px;}
+.wfd-bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(12,12,13,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.08);padding:8px 0 calc(8px + env(safe-area-inset-bottom));display:none;align-items:center;justify-content:space-around;z-index:999;}
+.wfd-bottom-nav.active{display:flex;}
+.wfd-nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:rgba(255,255,255,.5);font-family:var(--font-display);font-size:.6rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:4px 18px;border-radius:6px;transition:color .12s;cursor:pointer;background:none;border:none;}
+.wfd-nav-btn:active{color:var(--gold-400);transform:scale(.92);}
+.wfd-nav-btn.home{color:var(--gold-400);}
+.wfd-nav-icon{width:20px;height:20px;margin-bottom:1px;}
+body.pwa-mode{padding-bottom:calc(64px + env(safe-area-inset-bottom))!important;}
+
 :root {
   --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
   --paper: #F9F6F1; --white: #FFFFFF; --border: rgba(44,44,42,0.12); --radius: 10px;
@@ -90,21 +122,22 @@ body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !import
 </head>
 <body>
 
-<div class="header">
-  <div class="header-glow"></div>
-  <div class="header-inner">
-    <div class="header-eyebrow">🚦 Apparatus Routing</div>
-    <h1>Road <span>Conditions</span></h1>
-    <p class="header-sub">Westminster & Denver Metro — Live CDOT COtrip Data</p>
-  </div>
-</div>
 
-<div class="status-bar">
-  <div class="status-pill">
-    <div class="status-dot"></div>
+<header class="wfd-header">
+  <div class="wfd-header-inner">
+    <div class="wfd-eyebrow">Apparatus Routing</div>
+    <h1 class="wfd-h1">Road <span>Conditions</span></h1>
+    <p class="wfd-header-sub">Westminster & Denver Metro — Live CDOT COtrip Data</p>
+  </div>
+</header>
+
+<div class="wfd-status-bar">
+  <div class="wfd-pill">
+    <div class="wfd-pill-dot"></div>
     <span>Live data via COtrip — tap a corridor to check conditions</span>
   </div>
 </div>
+
 
 <main class="main">
 
@@ -219,17 +252,20 @@ body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !import
 
 </main>
 
-<footer class="footer">
-  Data from <a href="https://cotrip.org" target="_blank">CDOT COtrip</a> &bull;
+
+<footer class="footer" style="max-width:900px;margin:0 auto;padding:0 1.5rem 1.5rem;font-size:.75rem;color:#61616b;">
+  Data from <a href="https://cotrip.org" target="_blank" style="color:var(--wfd-maroon);font-weight:600">CDOT COtrip</a> &bull;
   Call <strong>511</strong> for voice updates &bull;
   Emergency: <strong>*CSP</strong> (*277)
 </footer>
 
-<div class="bottom-nav">
-  <a class="bottom-nav-btn home" href="index.html"><div class="bottom-nav-icon">🏠</div><span>Home</span></a>
-  <a class="bottom-nav-btn" href="https://cotrip.org" target="_blank"><div class="bottom-nav-icon">🗺️</div><span>COtrip</span></a>
-  <a class="bottom-nav-btn" href="javascript:history.back()"><div class="bottom-nav-icon">◀</div><span>Back</span></a>
-</div>
+
+
+<nav class="wfd-bottom-nav" id="bottom-nav">
+  <a class="wfd-nav-btn home" href="index.html"><i data-lucide="home" class="wfd-nav-icon"></i>Home</a>
+  <a class="wfd-nav-btn" href="https://cotrip.org" target="_blank"><i data-lucide="map" class="wfd-nav-icon"></i>COtrip</a>
+  <a class="wfd-nav-btn" href="javascript:history.back()"><i data-lucide="chevron-left" class="wfd-nav-icon"></i>Back</a>
+</nav>
 
 <script>
 (function() {
@@ -237,5 +273,11 @@ body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !import
   if (s) { document.body.classList.add('pwa-mode'); var n = document.querySelector('.bottom-nav'); if (n) n.classList.add('pwa-active'); }
 })();
 </script>
+
+(function(){
+  var s=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+  if(s){document.body.classList.add('pwa-mode');var n=document.getElementById('bottom-nav');if(n)n.classList.add('active');}
+  if(window.lucide) lucide.createIcons();
+})();
 </body>
 </html>
