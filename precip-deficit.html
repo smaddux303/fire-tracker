@@ -7,7 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Precipitation Deficit — Westminster FD</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=Oswald:wght@400;600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
 :root {
   --ash: #2C2C2A; --smoke: #5F5E5A; --mist: #B4B2A9;
@@ -149,22 +150,52 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .bottom-nav-btn.home { color: #62B8D4; }
 .bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
 body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+
+  :root { --wfd-black:#0c0c0d; --wfd-gold:#ffcc00; --wfd-maroon:#990033; }
+  .wfd-header { background:var(--wfd-black)!important; border-bottom:3px solid var(--wfd-maroon)!important; position:sticky; top:0; z-index:100; }
+  .wfd-eyebrow { font-family:'Oswald',sans-serif; font-size:.6875rem; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--wfd-gold); margin-bottom:.3rem; }
+  .wfd-header h1 { font-family:'Oswald',sans-serif!important; font-size:clamp(2.2rem,6vw,3.5rem)!important; font-weight:700!important; line-height:.95!important; letter-spacing:.02em!important; text-transform:uppercase!important; color:#f5f5f6!important; }
+  .wfd-header h1 span { color:var(--wfd-gold)!important; }
+  .wfd-header .header-sub { color:rgba(255,255,255,.45)!important; }
+  .wfd-header .header-glow { display:none; }
+  .wfd-status-bar { max-width:960px; margin:0 auto; padding:0 1.5rem; }
+  .wfd-pill { display:inline-flex; align-items:center; gap:8px; padding:.45rem 1rem; border-radius:0 0 10px 10px; font-family:'Oswald',sans-serif; font-size:.75rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+  .wfd-pill.loading  { background:#faeeda; color:#633806; }
+  .wfd-pill.surplus  { background:#e8f0fa; color:#0e3a6e; }
+  .wfd-pill.normal   { background:#e7f4ec; color:#0e4d2a; }
+  .wfd-pill.deficit  { background:#fffde7; color:#5d4037; }
+  .wfd-pill.moderate { background:#fff3e0; color:#7e2c00; }
+  .wfd-pill.severe   { background:#fdeaeb; color:#7a0e17; }
+  .wfd-pill-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; background:currentColor; }
+  .wfd-pill.loading .wfd-pill-dot,.wfd-pill.severe .wfd-pill-dot { animation:wfd-pulse 1.2s infinite; }
+  @keyframes wfd-pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.4);} }
+  .wfd-footer-btn { font-family:'Oswald',sans-serif; font-size:.75rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; background:var(--wfd-black); color:#f5f5f6; border:none; border-radius:6px; padding:.5rem 1rem; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background .12s; }
+  .wfd-footer-btn:hover { background:var(--wfd-maroon); }
+  .wfd-footer-btn i { width:13px; height:13px; }
+  .wfd-bottom-nav { position:fixed; bottom:0; left:0; right:0; background:rgba(12,12,13,.96); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-top:1px solid rgba(255,255,255,.08); padding:8px 0 calc(8px + env(safe-area-inset-bottom)); display:none; align-items:center; justify-content:space-around; z-index:999; }
+  .wfd-bottom-nav.active { display:flex; }
+  .wfd-nav-btn { display:flex; flex-direction:column; align-items:center; gap:3px; text-decoration:none; color:rgba(255,255,255,.5); font-family:'Oswald',sans-serif; font-size:.6rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; padding:4px 18px; border-radius:6px; transition:color .12s; cursor:pointer; background:none; border:none; }
+  .wfd-nav-btn:active { color:var(--wfd-gold); transform:scale(.92); }
+  .wfd-nav-btn.home { color:var(--wfd-gold); }
+  .wfd-nav-icon { width:20px; height:20px; margin-bottom:1px; }
+  body.pwa-mode { padding-bottom:calc(64px + env(safe-area-inset-bottom))!important; }
+
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-glow"></div>
+<div class="header wfd-header">
+  
   <div class="header-inner">
-    <div class="header-eyebrow">💧 Situational Awareness</div>
-    <h1>Precip <span>Deficit</span></h1>
+    <div class="wfd-eyebrow">Fire Risk</div>
+    <h1 style="font-family:'Oswald',sans-serif;font-size:clamp(2.2rem,6vw,3.5rem);font-weight:700;line-height:.95;letter-spacing:.02em;text-transform:uppercase;color:#f5f5f6">Precip <span style="color:var(--wfd-gold)">Deficit</span></h1>
     <p class="header-sub">Westminster, CO — Adams & Jefferson Counties — Dryness & Drought Tracker</p>
   </div>
 </div>
 
-<div class="status-bar">
-  <div class="status-pill loading" id="status-pill">
-    <div class="status-dot"></div>
+<div class="wfd-status-bar">
+  <div class="wfd-pill loading" id="status-pill">
+    <div class="wfd-pill-dot"></div>
     <span id="status-text">Loading precipitation data…</span>
   </div>
 </div>
@@ -256,21 +287,16 @@ body.pwa-mode { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !import
     <a href="https://droughtmonitor.unl.edu/CurrentMap/StateDroughtMonitor.aspx?CO" target="_blank">US Drought Monitor</a> &bull;
     <span id="last-updated">—</span>
   </div>
-  <button class="refresh-btn" onclick="loadData()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <polyline points="23 4 23 10 17 10"></polyline>
-      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-    </svg>
-    Refresh
+  <button class="wfd-footer-btn" onclick="loadData()">
+    <i data-lucide="refresh-cw"></i> Refresh
   </button>
 </footer>
 
-<div class="bottom-nav">
-  <a class="bottom-nav-btn home" href="index.html"><div class="bottom-nav-icon">🏠</div><span>Home</span></a>
-  <button class="bottom-nav-btn" onclick="window.location.reload()"><div class="bottom-nav-icon">🔄</div><span>Refresh</span></button>
-  <a class="bottom-nav-btn" href="javascript:history.back()"><div class="bottom-nav-icon">◀</div><span>Back</span></a>
-</div>
-
+<nav class="wfd-bottom-nav" id="bottom-nav">
+  <a class="wfd-nav-btn home" href="index.html"><i data-lucide="home" class="wfd-nav-icon"></i>Home</a>
+  <button class="wfd-nav-btn" onclick="window.location.reload()"><i data-lucide="refresh-cw" class="wfd-nav-icon"></i>Refresh</button>
+  <a class="wfd-nav-btn" href="javascript:history.back()"><i data-lucide="chevron-left" class="wfd-nav-icon"></i>Back</a>
+</nav>
 <script>
 var BIN_ID     = '6a0ca0e6ee5a733b12e69903';
 var MASTER_KEY = '$2a$10$AmSubp9/w6PuIlI6TPzuu.oDt3nlAY/4VL30jINVp2iZuvguywN2.';
@@ -302,7 +328,7 @@ function deficitLevel(deficit) {
 
 function setStatus(cls, text) {
   var pill = document.getElementById('status-pill');
-  pill.className = 'status-pill ' + cls;
+  pill.className = 'wfd-pill ' + cls;
   document.getElementById('status-text').textContent = text;
 }
 
