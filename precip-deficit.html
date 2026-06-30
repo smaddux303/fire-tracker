@@ -588,7 +588,12 @@ setInterval(loadData, 60 * 60 * 1000);
 
 (function() {
   var s = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-  if (s) { document.body.classList.add('pwa-mode'); var n = document.querySelector('.bottom-nav'); if (n) n.classList.add('pwa-active'); }
+  if (s) {
+    document.body.classList.add('pwa-mode');
+    var n = document.getElementById('bottom-nav');
+    if (n) n.classList.add('active');
+  }
+  if (window.lucide) lucide.createIcons();
 })();
 </script>
 </body>
