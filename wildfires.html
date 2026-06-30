@@ -173,7 +173,7 @@
   <div class="header-inner">
     <div class="wfd-eyebrow">Situational Awareness</div>
     <h1 style="font-family:'Oswald',sans-serif;font-size:clamp(2.2rem,6vw,3.5rem);font-weight:700;line-height:.95;letter-spacing:.02em;text-transform:uppercase;color:#f5f5f6">Active <span style="color:var(--wfd-gold)">Wildfires</span></h1>
-    <p class="header-sub">Colorado, Utah, Wyoming, New Mexico, Kansas &amp; Nebraska — Live NIFC Data</p>
+    <p class="header-sub">CO · UT · WY · NM · AZ · MT · ID · NV · OR · WA · CA · KS · NE — Live NIFC Data</p>
   </div>
 </div>
 
@@ -204,14 +204,14 @@
 
 <script>
 // Target states
-const TARGET_STATES = ['Colorado','Utah','Wyoming','New Mexico','Kansas','Nebraska','CO','UT','WY','NM','KS','NE'];
+const TARGET_STATES = ['Colorado','Utah','Wyoming','New Mexico','Kansas','Nebraska','Arizona','Montana','Idaho','Nevada','Oregon','Washington','California','CO','UT','WY','NM','KS','NE','AZ','MT','ID','NV','OR','WA','CA'];
 const STATE_ABBR = {
   'Colorado':'CO','Utah':'UT','Wyoming':'WY','New Mexico':'NM','Kansas':'KS','Nebraska':'NE'
 };
 
 // NIFC ArcGIS REST API — public, no key required
 // Active fire perimeters and incidents
-const NIFC_URL = 'https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/Active_Fires/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=1000';
+const NIFC_URL = 'https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_Current/FeatureServer/0/query?where=1%3D1&outFields=IncidentName,GISAcres,PercentContained,POOState,POOCounty,FireDiscoveryDateTime,IncidentTypeCategory,InciWebURL&f=json&resultRecordCount=500';
 const NIFC_IRWIN = 'https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/IRWIN_Calculated_Incidents/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=500';
 
 let allFires = [];
@@ -245,7 +245,7 @@ function renderFires(fires) {
   list.innerHTML = '';
 
   if (fires.length === 0) {
-    list.innerHTML = `<div class="no-fires"><span style="font-size:1.5rem">✅</span><div><strong>No active fires found</strong> in ${activeFilter === 'All' ? 'the region' : activeFilter}.</div></div>`;
+    list.innerHTML = `<div class="no-fires"><span style="font-size:1.5rem">✅</span><div><strong>No active fires found</strong> in ${activeFilter === 'All' ? 'the Western US' : activeFilter}.</div></div>`;
     return;
   }
 
@@ -326,7 +326,7 @@ async function loadData() {
         const p = f.attributes || {};
         return {
           name:        p.IncidentName || p.Fire_Name || p.Name || 'Unknown Fire',
-          state: (function(s){ var m={'CO':'Colorado','UT':'Utah','WY':'Wyoming','NM':'New Mexico','KS':'Kansas','NE':'Nebraska'}; return m[s]||s; })(p.POOState || p.State || p.state || ''),
+          state: (function(s){ var m={'CO':'Colorado','UT':'Utah','WY':'Wyoming','NM':'New Mexico','KS':'Kansas','NE':'Nebraska','AZ':'Arizona','MT':'Montana','ID':'Idaho','NV':'Nevada','OR':'Oregon','WA':'Washington','CA':'California'}; return m[s]||s; })(p.POOState || p.State || p.state || ''),
           location:    p.POOCounty ? `${p.POOCounty} County, ${p.POOState || ''}` : (p.Location || ''),
           acres:       parseFloat(p.GISAcres || p.Acres || p.DailyAcres || 0),
           containment: p.PercentContained ?? p.Percent_Contained ?? null,
@@ -343,7 +343,7 @@ async function loadData() {
     document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZoneName:'short' });
 
     if (allFires.length === 0) {
-      setStatus('clear', 'No active wildfires in the Colorado region');
+      setStatus('clear', 'No active wildfires in the Western US region');
     } else {
       setStatus('active', `${allFires.length} active wildfire${allFires.length > 1 ? 's' : ''} in the region`);
     }
