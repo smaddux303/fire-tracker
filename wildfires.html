@@ -204,7 +204,7 @@
 
 <script>
 // Target states
-const TARGET_STATES = ['Colorado','Utah','Wyoming','New Mexico','Kansas','Nebraska'];
+const TARGET_STATES = ['Colorado','Utah','Wyoming','New Mexico','Kansas','Nebraska','CO','UT','WY','NM','KS','NE'];
 const STATE_ABBR = {
   'Colorado':'CO','Utah':'UT','Wyoming':'WY','New Mexico':'NM','Kansas':'KS','Nebraska':'NE'
 };
@@ -326,7 +326,7 @@ async function loadData() {
         const p = f.attributes || {};
         return {
           name:        p.IncidentName || p.Fire_Name || p.Name || 'Unknown Fire',
-          state:       p.POOState || p.State || p.state || '',
+          state: (function(s){ var m={'CO':'Colorado','UT':'Utah','WY':'Wyoming','NM':'New Mexico','KS':'Kansas','NE':'Nebraska'}; return m[s]||s; })(p.POOState || p.State || p.state || ''),
           location:    p.POOCounty ? `${p.POOCounty} County, ${p.POOState || ''}` : (p.Location || ''),
           acres:       parseFloat(p.GISAcres || p.Acres || p.DailyAcres || 0),
           containment: p.PercentContained ?? p.Percent_Contained ?? null,
