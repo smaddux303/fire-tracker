@@ -186,6 +186,9 @@
 
 <main class="main">
   <div id="content-area">
+  <div style="background:#e7f4ec;border:1px solid rgba(31,138,76,.2);border-left:3px solid #1f8a4c;border-radius:10px;padding:.9rem 1rem;margin-bottom:1.25rem;font-size:.8rem;color:#0e4d2a;line-height:1.55;">
+    Active wildfire data is available via the links below. Tap any resource to view current fire information for your response area.
+  </div>
     <div class="loading-state"><div class="spinner"></div>Fetching active wildfire data from NIFC…</div>
   </div>
 </main>
@@ -412,6 +415,69 @@ async function loadData() {
 
 loadData();
 setInterval(loadData, 15 * 60 * 1000); // refresh every 15 minutes
+</script>
+
+<nav class="wfd-bottom-nav" id="bottom-nav">
+  <a class="wfd-nav-btn home" href="index.html"><i data-lucide="home" class="wfd-nav-icon"></i>Home</a>
+  <button class="wfd-nav-btn" onclick="window.location.reload()"><i data-lucide="refresh-cw" class="wfd-nav-icon"></i>Refresh</button>
+  <a class="wfd-nav-btn" href="javascript:history.back()"><i data-lucide="chevron-left" class="wfd-nav-icon"></i>Back</a>
+</nav>
+<script>
+// Show bottom nav only when running as installed PWA
+(function() {
+  var s = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  if (s) {
+    document.body.classList.add('pwa-mode');
+    var n = document.getElementById('bottom-nav');
+    if (n) n.classList.add('active');
+  }
+  if (window.lucide) lucide.createIcons();
+})();
+</script>
+</body>
+</html>// Set status immediately
+document.getElementById('status-pill').className = 'status-pill active';
+document.getElementById('status-text').textContent = 'Tap a resource to view active wildfires';
+
+// Render launcher tiles
+document.getElementById('content-area').innerHTML += `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem;">
+
+    <a href="https://inciweb.wildfire.gov" target="_blank" style="background:#fff;border:1px solid rgba(44,44,42,.12);border-top:3px solid #990033;border-radius:10px;padding:1rem;text-decoration:none;color:#2C2C2A;display:flex;flex-direction:column;gap:5px;">
+      <div style="font-size:.85rem;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">InciWeb</div>
+      <div style="font-size:.7rem;color:#61616b;">Official incident info, maps & evacuation notices</div>
+    </a>
+
+    <a href="https://www.nifc.gov/fire-information/maps" target="_blank" style="background:#fff;border:1px solid rgba(44,44,42,.12);border-top:3px solid #990033;border-radius:10px;padding:1rem;text-decoration:none;color:#2C2C2A;display:flex;flex-direction:column;gap:5px;">
+      <div style="font-size:.85rem;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">NIFC Maps</div>
+      <div style="font-size:.7rem;color:#61616b;">National fire situation maps & large fire data</div>
+    </a>
+
+    <a href="https://www.arcgis.com/apps/webappviewer/index.html?id=2ff1677111ae4018ac705fcce7c3312f" target="_blank" style="background:#fff;border:1px solid rgba(44,44,42,.12);border-top:3px solid #990033;border-radius:10px;padding:1rem;text-decoration:none;color:#2C2C2A;display:flex;flex-direction:column;gap:5px;">
+      <div style="font-size:.85rem;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Active Fire Map</div>
+      <div style="font-size:.7rem;color:#61616b;">NIFC interactive wildfire perimeters map</div>
+    </a>
+
+    <a href="https://www.nifc.gov/nicc/incident-information/national-incident-map" target="_blank" style="background:#fff;border:1px solid rgba(44,44,42,.12);border-top:3px solid #990033;border-radius:10px;padding:1rem;text-decoration:none;color:#2C2C2A;display:flex;flex-direction:column;gap:5px;">
+      <div style="font-size:.85rem;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">IMSR Map</div>
+      <div style="font-size:.7rem;color:#61616b;">Incident Management Situation Report</div>
+    </a>
+
+    <a href="https://www.weather.gov/bou/fire" target="_blank" style="background:#fff;border:1px solid rgba(44,44,42,.12);border-top:3px solid #990033;border-radius:10px;padding:1rem;text-decoration:none;color:#2C2C2A;display:flex;flex-direction:column;gap:5px;">
+      <div style="font-size:.85rem;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">NWS Fire Weather</div>
+      <div style="font-size:.7rem;color:#61616b;">NWS Boulder fire weather forecasts</div>
+    </a>
+
+    <a href="https://gacc.nifc.gov/rmcc/" target="_blank" style="background:#fff;border:1px solid rgba(44,44,42,.12);border-top:3px solid #990033;border-radius:10px;padding:1rem;text-decoration:none;color:#2C2C2A;display:flex;flex-direction:column;gap:5px;">
+      <div style="font-size:.85rem;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Rocky Mtn GACC</div>
+      <div style="font-size:.7rem;color:#61616b;">Regional coordination & situation reports</div>
+    </a>
+
+  </div>
+  <div style="background:#e8f0fa;border:1px solid rgba(31,95,168,.2);border-radius:10px;padding:.85rem 1rem;font-size:.7rem;color:#0e3a6e;line-height:1.55;margin-bottom:1.25rem;">
+    ℹ️ Live wildfire API data is provided by NIFC and is accessible via the links above. For on-scene support call the Rocky Mountain Coordination Center (RMCC) at <strong>(208) 387-5400</strong>.
+  </div>
+\`; // refresh every 15 minutes
 </script>
 
 <nav class="wfd-bottom-nav" id="bottom-nav">
